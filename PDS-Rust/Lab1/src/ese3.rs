@@ -1,5 +1,6 @@
 use std::fs::{File};
 use std::io::{self, BufRead, BufReader, Read, Write};
+use std::time::SystemTime;
 use hex;
 
 fn read_file_content(filename: &str) -> io::Result<String> {
@@ -64,23 +65,80 @@ fn uno_b(input: &String){
     }
 }
 
-fn uno_c(){
+enum Error {
+    Simple(SystemTime),
+    Complex(SystemTime, String),
+}
 
+fn enum_handle_errors(err: Error) {
+    match err {
+        Error::Simple(time) => {
+            println!("Error Type: Simple");
+            println!("Timestamp: {:?}", time);
+        }
+        Error::Complex(time, msg) => {
+            println!("Error Type: Complex");
+            println!("Timestamp: {:?}", time);
+            println!("Message: {}", msg);
+        }
+    }
+}
+
+fn due(){
+    let simple_error = Error::Simple(SystemTime::now());
+    let complex_error = Error::Complex(SystemTime::now(), String::from("Something went wrong"));
+
+    enum_handle_errors(simple_error);
+    enum_handle_errors(complex_error);
+}
+
+enum MulErr {Overflow, NegativeNumber}
+
+fn mul(a: i32, b: i32) -> Result<u32, MulErr> {
+
+    // checked_mul is used to safely perform the multiplication. If an overflow occurs, it returns None
+    match a.checked_mul(b) {
+        // Some optional element, two possible value: <T> and None
+        Some(mul) => {
+            if mul < 0 {
+                Err(MulErr::NegativeNumber)
+            } else {
+                Ok(mul as u32)
+            }
+        }
+        None => Err(MulErr::Overflow), // Overflow detected
+    }
+}
+
+pub fn tre(){
+    let a = 2_i32.pow(30) - 1; // 2^31 - 1 ! overflow già qui
+    let b = 5;
+    match mul(a, b){
+        Ok(mul) => {
+            println!("{} * {} = {}", 5, 5, mul);
+        },
+        Err(MulErr::NegativeNumber) => {
+            println!("Negative number");
+        }
+        Err(MulErr::Overflow) => {
+            println!("Overflow");
+        }
+    }
 }
 
 
-fn main() {
+pub fn main() {
     println!(".");
 
-    let input = String::from("src/example.txt");
+    //let input = String::from("src/example.txt");
 
     // read and output ten time the read text
-    uno_a(&input);
+    //uno_a(&input);
 
     // any diff?
-    uno_b(&input);
+    //uno_b(&input);
 
     // enum
-    uno_c();
+    due();
 
 }

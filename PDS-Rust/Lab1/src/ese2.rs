@@ -35,7 +35,7 @@ fn append_to_file(filename: &str, content: &str) -> io::Result<()> {
     Ok(())
 }
 
-fn main() {
+pub fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() > 1 {

@@ -190,6 +190,8 @@ mod tests
 }
 
 fn main() {
-    run_pangram();
+    // run_pangram();
+
+    ese3::tre();
 }
 
