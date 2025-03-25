@@ -127,18 +127,45 @@ pub fn tre(){
 }
 
 
-pub fn main() {
-    println!(".");
-
-    //let input = String::from("src/example.txt");
-
-    // read and output ten time the read text
-    //uno_a(&input);
-
-    // any diff?
-    //uno_b(&input);
-
-    // enum
-    due();
-
+struct Node {
+    name: String,
+    size: u32,
+    count: u32,
 }
+impl Node {
+    pub fn new(name: &str) -> Node {
+        Node {name: name.to_string(), size: 0, count: 0}
+    }
+
+    pub fn size(&mut self, n:u32) -> &mut Self {
+        self.size = n;
+        self
+    }
+    pub fn count(&mut self, c:u32) -> &mut Self {
+        self.count = c;
+        self
+    }
+
+    pub fn grow(&mut self) -> &mut Self {
+        self.size += 1;
+        self
+    }
+    pub fn inc(&mut self) -> &mut Self {
+        self.count += 1;
+        self
+    }
+
+    pub fn to_string(&self) -> String {
+        return format!("{}, {}, {}", self.name, self.size, self.count);
+    }
+}
+
+pub fn quattro(){
+    let mut node = Node::new("nodo");
+    node.size(10).count(5);
+    println!("{}", node.to_string());
+
+    node.grow().inc();
+    println!("{}", node.to_string());
+}
+

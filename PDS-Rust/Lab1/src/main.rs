@@ -1,5 +1,6 @@
 mod ese2;
 mod ese3;
+mod battagliaNavale;
 
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
@@ -192,6 +193,6 @@ mod tests
 fn main() {
     // run_pangram();
 
-    ese3::tre();
+    battagliaNavale::main();
 }
 
