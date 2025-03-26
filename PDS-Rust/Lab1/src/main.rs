@@ -1,6 +1,7 @@
 mod ese2;
 mod ese3;
 mod battagliaNavale;
+mod slugify;
 
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
@@ -191,6 +192,8 @@ mod tests
 }
 
 fn main() {
+    // main è slugify
+
     // run_pangram();
 
     battagliaNavale::main();
