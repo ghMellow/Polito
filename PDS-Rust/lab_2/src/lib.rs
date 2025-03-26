@@ -1,6 +1,3 @@
-pub mod ese1;
-pub mod tratto;
-
 
 /// Rust Module and Import Best Practices
 ///
@@ -23,3 +20,32 @@ pub mod tratto;
 /// - Using relative imports instead of `crate::`
 /// - Mismatched module and file names
 /// - Missing dependency declarations
+
+pub mod solution{
+    pub struct ComplexNumber{
+        real:f64,
+        imag:f64,
+    }
+    impl ComplexNumber{
+        pub fn new(real:f64, imag:f64) -> ComplexNumber{
+            ComplexNumber{
+                real, imag
+            }
+        }
+
+        pub fn from_real(real:f64) -> ComplexNumber{
+            ComplexNumber{
+                real, imag:0.0
+            }
+        }
+
+        pub fn real(&self) -> f64{
+            self.real
+        }
+
+        pub fn imag(&self) -> f64{
+            self.imag
+        }
+
+    }
+}
