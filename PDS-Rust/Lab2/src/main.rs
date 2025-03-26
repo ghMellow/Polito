@@ -1,7 +1,11 @@
+mod tratto;
+
+use tratto::MySlug; // Importa il tratto
 use regex::Regex;
 
 
 fn conv(c: char) -> char {
+    /// Converte char nell'equivalente non accentato
     const SUBS_I : &str =
         "àáâäæãåāăąçćčđďèéêëēėęěğǵḧîïíīįìıİłḿñńǹňôöòóœøōõőṕŕřßśšşșťțûüùúūǘůűųẃẍÿýžźż";
     const SUBS_O: &str =
@@ -38,7 +42,9 @@ fn conv(c: char) -> char {
 }
 
 
-fn slugify(s: &str) -> String {
+pub fn slugify(s: &str) -> String {
+    /// trasforma la stringa -> slugify
+
     // ensure to elaborate not empty str
     if s.is_empty()  {
         return String::from("-");
@@ -181,7 +187,12 @@ mod tests {
 
 
 fn main() {
-    let input = "ciao mondo !";//"test__3-é_";
-    let output = slugify(input);
-    println!("\nfrom '{}' to '{}'", input, output);
+    let s1 = String::from("Hello String");
+    let s2 = "hello-slice";
+    println!("{}", s1.is_slug()); // false
+    println!("{}", s2.is_slug()); // true
+    let s3: String = s1.to_slug();
+    let s4: String = s2.to_slug();
+
+    println!("s3:{} s4:{}", s3, s4); // stampa: s3:hello-string s4:hello-slice
 }
