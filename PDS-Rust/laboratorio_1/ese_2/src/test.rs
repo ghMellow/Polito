@@ -1,3 +1,5 @@
+mod test;
+
 use std::env;
 use std::fs::{File, OpenOptions};
 use std::io::{self, BufRead, BufReader, Read, Write};

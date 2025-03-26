@@ -1,7 +1,5 @@
-//use regex::Regex;
-//use crate::ese1::conv;
-use crate::ese1::slugify;
-
+use regex::Regex;
+use crate::my_functions::slugify;
 
 /// Tratto per la gestione degli slug
 pub trait MySlug {

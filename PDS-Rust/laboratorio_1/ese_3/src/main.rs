@@ -160,7 +160,8 @@ impl Node {
     }
 }
 
-pub fn quattro(){
+
+fn main() {
     let mut node = Node::new("nodo");
     node.size(10).count(5);
     println!("{}", node.to_string());
@@ -168,4 +169,3 @@ pub fn quattro(){
     node.grow().inc();
     println!("{}", node.to_string());
 }
-

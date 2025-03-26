@@ -1,8 +1,3 @@
-mod ese2;
-mod ese3;
-mod battagliaNavale;
-mod slugify;
-
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::env;
@@ -192,10 +187,6 @@ mod tests
 }
 
 fn main() {
-    // main è slugify
-
-    // run_pangram();
-
-    battagliaNavale::main();
+    println!("Running tests");
 }
 

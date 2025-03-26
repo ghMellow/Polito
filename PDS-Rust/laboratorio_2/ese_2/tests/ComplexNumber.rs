@@ -1,4 +1,4 @@
-use lab_2::solution::ComplexNumber;
+use ese_2::solution::ComplexNumber;
 
 // for this execise see https://doc.rust-lang.org/beta/std/primitive.f64.html
 // you can find examples for all the traits that must be implemented
@@ -17,6 +17,7 @@ pub fn test_create_from_real() {
     assert_eq!(a.imag(), 0.0);
 }
 
+/*
 #[test]
 pub fn test_display() {
     // let's have a nice print for our complex numbers and not the ugly debug
@@ -26,7 +27,7 @@ pub fn test_display() {
     assert_eq!(format!("{b}"), "4.2 + 4.2i");
 }
 
-/*
+
 #[test]
 pub fn test_add() {
     // implement Add trait

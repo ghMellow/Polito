@@ -1,11 +1,10 @@
 use regex::Regex;
 
-
 fn conv(c: char) -> char {
     const SUBS_I : &str =
-    "àáâäæãåāăąçćčđďèéêëēėęěğǵḧîïíīįìıİłḿñńǹňôöòóœøōõőṕŕřßśšşșťțûüùúūǘůűųẃẍÿýžźż";
+        "àáâäæãåāăąçćčđďèéêëēėęěğǵḧîïíīįìıİłḿñńǹňôöòóœøōõőṕŕřßśšşșťțûüùúūǘůűųẃẍÿýžźż";
     const SUBS_O: &str =
-    "aaaaaaaaaacccddeeeeeeeegghiiiiiiiilmnnnnoooooooooprrsssssttuuuuuuuuuwxyyzzz";
+        "aaaaaaaaaacccddeeeeeeeegghiiiiiiiilmnnnnoooooooooprrsssssttuuuuuuuuuwxyyzzz";
 
     // make str indexable by transforming them into string
     let subs_i: Vec<char> = SUBS_I.chars().collect();
@@ -54,8 +53,8 @@ fn slugify(s: &str) -> String {
     // regex filtering
     let re = Regex::new(r"[a-z0-9]").unwrap();
     let filtered: String = normilized.chars()
-                                     .map(|c| if re.is_match(&c.to_string()) { c } else { '-' })
-                                     .collect();
+        .map(|c| if re.is_match(&c.to_string()) { c } else { '-' })
+        .collect();
 
     // only one '-' between two characters
     let mut previusly: char = filtered.chars().next().unwrap();
