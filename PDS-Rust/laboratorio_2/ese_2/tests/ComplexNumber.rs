@@ -17,12 +17,13 @@ pub fn test_create_from_real() {
     assert_eq!(a.imag(), 0.0);
 }
 
-/*
+
 #[test]
 pub fn test_display() {
     // let's have a nice print for our complex numbers and not the ugly debug
     let a: ComplexNumber = ComplexNumber::new(4.0, 2.0);
     let b: ComplexNumber = ComplexNumber::new(4.2, 4.2);
+    // assert_eq!(format!("{:?}", a), "4 + 2i");
     assert_eq!(format!("{a}"), "4 + 2i");
     assert_eq!(format!("{b}"), "4.2 + 4.2i");
 }
@@ -101,30 +102,38 @@ pub fn test_default_values() {
         assert_eq!(el.to_tuple(), (0.0, 0.0));
     }
 }
-
+/*
 // commented out again when implementing TryInto see note below
-//#[test]
-//pub fn test_convert_into_real() {
-//    let a = ComplexNumber::from_real(1.0);
-//    let b: f64 = a.into();
-//
-//    assert_eq!(b, 1.0);
-//
-//}
+#[test]
+pub fn test_convert_into_real() {
+    let a = ComplexNumber::from_real(1.0);
+    let b: f64 = a.into();
+
+    assert_eq!(b, 1.0);
+
+}
 
 // commented out again when implementing TryInto because it's covered by TryInto see note below
-//#[test]
-//pub fn test_panic_when_impossible_to_convert_to_real() {
-//    // we can convert into a real only if imag is 0
-//    let a = ComplexNumber::new(1.0, 2.0);
-//
-//    let result = std::panic::catch_unwind(|| {
-//        let _: f64 = a.into();
-//    });
-//
-//    assert!(result.is_err());
-//}
+#[test]
+pub fn test_panic_when_impossible_to_convert_to_real() {
+    // we can convert into a real only if imag is 0
+    let a = ComplexNumber::new(1.0, 2.0);
 
+    /** Gestione del panic
+    std::panic::catch_unwind(|| { ... }) cattura eventuali panic.
+    Se il codice dentro { ... } va in panic, catch_unwind restituisce Err(_), altrimenti restituisce Ok(_).
+    **/
+    let result = std::panic::catch_unwind(|| {
+        let _: f64 = a.into();
+    });
+
+    /**Verifica del risultato
+    assert!(result.is_err()); verifica che sia effettivamente avvenuto un panic.
+    Se il test passa, significa che la conversione ha generato un panic come previsto.
+    **/
+    assert!(result.is_err());
+}
+*/
 #[test]
 pub fn test_try_into_f64() {
     // write trait and a test for the Trait TryInto for converting into f64
@@ -153,7 +162,7 @@ pub fn test_try_into_f64() {
         assert!(false);
     }
 }
-
+/*
 #[test]
 pub fn test_try_from_f64() {
     // write a trait allowing let complex = f64.into()

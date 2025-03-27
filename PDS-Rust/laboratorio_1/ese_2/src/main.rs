@@ -1,3 +1,5 @@
+use std::fmt;
+use std::fmt::Error;
 use regex::Regex;
 
 fn conv(c: char) -> char {
@@ -176,7 +178,6 @@ mod tests {
         assert_eq!(output, "hello-world");
     }
 }
-
 
 
 fn main() {
