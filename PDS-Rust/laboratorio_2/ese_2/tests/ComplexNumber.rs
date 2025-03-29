@@ -1,4 +1,6 @@
 use ese_2::solution::ComplexNumber;
+use ese_2::solution::ComplexNumberError;
+
 
 // for this execise see https://doc.rust-lang.org/beta/std/primitive.f64.html
 // you can find examples for all the traits that must be implemented
@@ -162,7 +164,7 @@ pub fn test_try_into_f64() {
         assert!(false);
     }
 }
-/*
+
 #[test]
 pub fn test_try_from_f64() {
     // write a trait allowing let complex = f64.into()
@@ -308,4 +310,3 @@ pub fn test_deque() {
         assert!(false);
     }
 }
-*/
