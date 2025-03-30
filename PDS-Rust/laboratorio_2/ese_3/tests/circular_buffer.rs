@@ -223,45 +223,6 @@ mod tests {
     }
 
     #[test]
-    fn test_index_mut_access() {
-        // Creiamo un buffer circolare
-        let mut buffer = CircularBufferHeterogenous::new(5);
-
-        // Aggiungiamo alcuni elementi
-        buffer.write(Box::new(10)).unwrap();
-        buffer.write(Box::new("hello".to_string())).unwrap();
-        buffer.write(Box::new(20)).unwrap();
-
-        // Modifichiamo un elemento tramite index_mut
-        // Nota: dobbiamo fare un downcast per modificare il valore interno
-        let item = &buffer[0];
-        let int_item = *item.as_any().downcast_ref::<i32>().unwrap();
-        // Per modificare il valore dovremmo avere un metodo specifico o utilizzare
-        // un downcast_mut, ma questo dipende dall'implementazione di BufferItem
-        assert_eq!(int_item, 10);
-
-        /*
-        // Testiamo il caso in cui il buffer effettua wrap-around
-        let mut circular = CircularBufferHeterogenous::new(3);
-        circular.write(Box::new(10)).unwrap();
-        circular.write(Box::new(20)).unwrap();
-        circular.write(Box::new(30)).unwrap();
-
-        // Leggiamo il primo elemento, poi ne aggiungiamo uno nuovo
-        // che dovrebbe sovrascrivere il primo (se il buffer è pieno)
-        assert_eq!(circular[0], "10");
-
-        // Aggiungiamo un nuovo elemento che dovrebbe causare l'avanzamento di head
-        circular.write(Box::new(40)).unwrap();
-
-        // Ora il buffer dovrebbe contenere [20, 30, 40] con head a 1
-        assert_eq!(circular[0], "20");
-        assert_eq!(circular[1], "30");
-        assert_eq!(circular[2], "40");
-         */
-    }
-
-    #[test]
     #[should_panic(expected = "Index out of bounds")]
     fn test_index_out_of_bounds() {
         let buffer = CircularBufferHeterogenous::new(3);
@@ -275,5 +236,33 @@ mod tests {
         let mut buffer = CircularBufferHeterogenous::new(3);
         // Il buffer è vuoto, quindi qualsiasi accesso dovrebbe causare panic
         let _should_panic = &mut buffer[0];
+    }
+
+
+    #[test]
+    fn test_index_access() {
+        let mut buffer = CircularBufferHeterogenous::new(3);
+        buffer.write(10).unwrap();
+        buffer.write("hello".to_string()).unwrap();
+        buffer.write(ComplexNumber::new(2.0, 2.0)).unwrap();
+
+        let item = buffer[0].as_any().downcast_ref::<i32>().unwrap();
+        assert_eq!(item, &10);
+        let item = buffer[1].as_any().downcast_ref::<String>().unwrap();
+        assert_eq!(item, &"hello".to_string());
+        let item = buffer[2].as_any().downcast_ref::<ComplexNumber>().unwrap();
+        assert_eq!(item, &ComplexNumber::new(2.0, 2.0));
+    }
+    #[test]
+    fn test_index_mut_access() {
+        let mut buffer = CircularBufferHeterogenous::new(3);
+        buffer.write(10).unwrap();
+        buffer.write(20).unwrap();
+
+        let item_mut = buffer[1].as_any_mut().downcast_mut::<i32>().unwrap();
+        *item_mut = 99;
+
+        let item = buffer[1].as_any().downcast_ref::<i32>().unwrap();
+        assert_eq!(item, &99);
     }
 }
