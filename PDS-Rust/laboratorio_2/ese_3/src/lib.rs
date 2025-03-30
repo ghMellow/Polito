@@ -1,3 +1,5 @@
+pub mod complex_number;
+
 pub mod circular_buffer {
     #[derive(Debug)]
     pub struct CircularBuffer<T> {
@@ -113,6 +115,127 @@ pub mod circular_buffer {
             self.buffer = temp_buffer;
             self.head = 0;
             self.tail = self.size % self.capacity;
+        }
+    }
+}
+
+pub mod circular_buffer_heterogenous {
+    use std::fmt::Debug;
+    use std::any::Any;
+    use std::ops::{Index, IndexMut};
+
+    // Trait che tutti i tipi, singoli elementi, nel buffer circolare devono implementare
+    pub trait BufferItem: Debug + Any {
+        fn as_any(&self) -> &dyn Any;
+        fn as_any_mut(&mut self) -> &mut dyn Any;
+        fn clone_box(&self) -> Box<dyn BufferItem>;
+    }
+
+    // Implementazione automatica per i tipi che soddisfano i requisiti
+    impl<T: 'static + Debug + Clone> BufferItem for T {
+        fn as_any(&self) -> &dyn Any {
+            self
+        }
+
+        fn as_any_mut(&mut self) -> &mut dyn Any {
+            self
+        }
+
+        fn clone_box(&self) -> Box<dyn BufferItem> {
+            Box::new(self.clone())
+        }
+    }
+
+    #[derive(Debug)]
+    pub struct CircularBufferHeterogenous {
+        buffer: Vec<Option<Box<dyn BufferItem>>>,
+        capacity: usize,
+        head: usize,
+        tail: usize,
+        size: usize,
+    }
+
+    #[derive(Debug, PartialEq)]
+    pub enum Error {
+        FullBuffer,
+    }
+
+    impl CircularBufferHeterogenous {
+        pub fn new(capacity: usize) -> Self {
+            let mut buffer = Vec::with_capacity(capacity);
+            for _ in 0..capacity {
+                buffer.push(None);
+            }
+
+            CircularBufferHeterogenous {
+                buffer,
+                capacity,
+                head: 0,
+                tail: 0,
+                size: 0,
+            }
+        }
+
+        pub fn write<T: 'static + BufferItem>(&mut self, item: T) -> Result<(), Error> {
+            if self.size == self.capacity {
+                return Err(Error::FullBuffer);
+            }
+
+            self.buffer[self.tail] = Some(Box::new(item));
+            self.tail = (self.tail + 1) % self.capacity;
+            self.size += 1;
+
+            Ok(())
+        }
+
+        pub fn read(&mut self) -> Option<Box<dyn BufferItem>> {
+            if self.size == 0 {
+                return None;
+            }
+
+            let item = self.buffer[self.head].take();
+            self.head = (self.head + 1) % self.capacity;
+            self.size -= 1;
+
+            item
+        }
+
+        // Gli altri metodi rimangono simili...
+    }
+
+    // Altre funzionalità richieste. Implementazione personalizzata dell'accesso ai valori del
+    // vettore tramite indice: buf[i] restituirà il valore del buffer al valore di head + offset
+    // passato come parametro.
+    impl Index<usize> for CircularBufferHeterogenous {
+        type Output = Box<dyn BufferItem>;
+        fn index(&self, index: usize) -> &Self::Output {
+            if index >= self.size {
+                panic!("Index out of bounds");
+            }
+
+            let actual_index = (self.head + index) % self.capacity;
+
+            match &self.buffer[actual_index] {
+                Some(item) => item,
+                None => panic!("Trying to access an empty slot in the buffer"),
+            }
+
+            // Alternativa valida quando self è prestato (&self) infatti unwrap ne richiede il passaggio di possesso!
+            // self.buffer[actual_index].as_ref().unwrap()
+        }
+    }
+    impl IndexMut<usize> for CircularBufferHeterogenous {
+        fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+            if index >= self.size {
+                panic!("Index out of bounds");
+            }
+
+            let actual_index = (self.head + index) % self.capacity;
+
+            match &mut self.buffer[actual_index] {
+                Some(item) => item,
+                None => panic!("Trying to access an empty slot in the buffer"),
+            }
         }
     }
 }
