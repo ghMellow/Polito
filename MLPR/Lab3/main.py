@@ -6,6 +6,7 @@ import scipy
 def mcol(row):
     return row.reshape((row.shape[0], 1))
 
+
 def load(fname):
     """Load the dataset from file and return data matrix and labels."""
     DList = []  # List to store feature vectors
@@ -37,6 +38,7 @@ def load(fname):
     # vertical rows stack together horizontally, numpy array of labelList to access numpy functions
     return numpy.hstack(DList), numpy.array(labelsList, dtype=numpy.int32)
 
+
 def compute_mean_covarianceMatrix(D):
     # Compute mean vector
     mu = mcol(D.mean(1))
@@ -48,9 +50,10 @@ def compute_mean_covarianceMatrix(D):
 
     return mu, C
 
+
 def compute_eigenvalues_eigenvectors(C, m):
     if m < 2:
-        m = 2 # min 2 columns since we are plotting the 2 columns with the higher value of variance
+        m = 2  # min 2 columns since we are plotting the 2 columns with the higher value of variance
 
     # Once we have computed the data covariance matrix, we need to compute its eigenvectors and eigenvalues.
     # - For a generic square matrix we can use the library function numpy.linalg.eig
@@ -75,8 +78,9 @@ def compute_eigenvalues_eigenvectors(C, m):
 
     return P
 
+
 def compute_pca(C):
-    m = C.shape[0] # m determines the subspace, in this case we are not doing any reduction
+    m = C.shape[0]  # m determines the subspace, in this case we are not doing any reduction
     P = compute_eigenvalues_eigenvectors(C, m)
 
     # Finally, we can apply the projection to a single point x or to a matrix of samples D as
@@ -97,10 +101,11 @@ def compute_generalized_eigenvalue(SB, SW, m):
 
     # Notice that the columns of W are not necessarily orthogonal. If we want, we can find a basis U for the
     # subspace spanned by W using the singular value decomposition of W:
-    UW, _, _ = numpy.linalg.svd(W)
-    U = UW[:, 0:m]
+    """if not numpy.allclose(W.T @ W, numpy.eye(W.shape[1]), atol=1e-6):
+        UW, _, _ = numpy.linalg.svd(W)
+        W = UW[:, 0:m]"""
 
-    return U
+    return W
 
 
 def compute_lda(D, L):
@@ -116,7 +121,7 @@ def compute_lda(D, L):
         Sb: Between-class scatter matrix
     """
     n_features = D.shape[0]
-    N = D.shape[1] # number of elements of the dataset
+    N = D.shape[1]  # number of elements of the dataset
     classes = numpy.unique(L)
     overall_mean = mcol(D.mean(1))
 
@@ -125,7 +130,7 @@ def compute_lda(D, L):
 
     for c in classes:
         D_class = D[:, L == c]
-        nc = D_class.shape[1] # weigh, number of elements of the class
+        nc = D_class.shape[1]  # weigh, number of elements of the class
         mu_c, C_c = compute_mean_covarianceMatrix(D_class)
 
         # Compute within-class covariance
@@ -139,17 +144,17 @@ def compute_lda(D, L):
     Sw = Sw / N
     print(f"Sb:\n{Sb}\nSw:\n{Sw}")
 
-    m = min(len(classes) - 1, n_features)
-    U = compute_generalized_eigenvalue(Sb, Sw, m)
+    m = n_features
+    W = compute_generalized_eigenvalue(Sb, Sw, m)
 
-    return numpy.dot(U.T, D)
+    USol = numpy.load('IRIS_LDA_matrix_m2.npy')  # May have different signs for different directions
+    print(USol)
+    print(numpy.linalg.svd(numpy.hstack([W, USol]))[1])
+
+    return W.T @ D
 
 
-
-
-
-
-def plot_pca_scatter(D_pca, L):
+def plot_scatter(D, L, invert_x_axes, invert_y_axes):
     """
     Plot scatter plot for PCA-reduced data (2D), grouped by class labels.
 
@@ -162,24 +167,54 @@ def plot_pca_scatter(D_pca, L):
     """
 
     # from dataset to matrices of features separated for each flowers
-    D0 = D_pca[:, L == 0]  # Setosa
-    D1 = D_pca[:, L == 1]  # Versicolor
-    D2 = D_pca[:, L == 2]  # Virginica
+    D0 = D[:, L == 0]  # Setosa
+    D1 = D[:, L == 1]  # Versicolor
+    D2 = D[:, L == 2]  # Virginica
 
     plt.figure(figsize=(8, 6))
-    plt.xlabel("First Principal Component")  # The first principal component (PC1) represents the direction of greatest variance in the data.
-    plt.ylabel("Second Principal Component") # The second principal component (PC2) represents the direction of second-highest variance, orthogonal to PC1.
+    plt.xlabel(
+        "First Principal Component")  # The first principal component (PC1) represents the direction of greatest variance in the data.
+    plt.ylabel(
+        "Second Principal Component")  # The second principal component (PC2) represents the direction of second-highest variance, orthogonal to PC1.
 
     # Scatter plot for each class
     # Note: axes y *-1 to flip the graph and make it the same as the one shown in the pdf
-    plt.scatter(D0[0, :], (D0[1, :] * -1), label='Setosa', color='blue')
-    plt.scatter(D1[0, :], (D1[1, :] * -1), label='Versicolor', color='orange')
-    plt.scatter(D2[0, :], (D2[1, :] * -1), label='Virginica', color='green')
+    plt.scatter(D0[0, :] * invert_x_axes, (D0[1, :] * invert_y_axes), label='Setosa', color='blue')
+    plt.scatter(D1[0, :] * invert_x_axes, (D1[1, :] * invert_y_axes), label='Versicolor', color='orange')
+    plt.scatter(D2[0, :] * invert_x_axes, (D2[1, :] * invert_y_axes), label='Virginica', color='green')
 
     plt.legend()
     plt.title("PCA of IRIS Dataset")
     plt.show()
 
+
+def plot_hist(D, L):
+    """Plot histograms for each feature, grouped by class labels."""
+    D0 = D[:, L == 0]  # Data for Setosa
+    D1 = D[:, L == 1]  # Data for Versicolor
+    D2 = D[:, L == 2]  # Data for Virginica
+
+    # Feature names
+    hFea = {
+        0: 'Sepal length',
+        1: 'Sepal width',
+        2: 'Petal length',
+        3: 'Petal width'
+    }
+
+    for dIdx in range(D.shape[0]):
+        plt.figure()
+        plt.xlabel(hFea[dIdx])
+        plt.ylabel('Density')
+
+        # Plot histogram for each class
+        plt.hist(D0[dIdx, :], bins=10, density=True, alpha=0.4, label='Setosa')
+        plt.hist(D1[dIdx, :], bins=10, density=True, alpha=0.4, label='Versicolor')
+        plt.hist(D2[dIdx, :], bins=10, density=True, alpha=0.4, label='Virginica')
+
+        plt.legend()
+        plt.tight_layout()  # Adjust layout to prevent label cutoff
+    plt.show()
 
 
 if __name__ == '__main__':
@@ -192,12 +227,10 @@ if __name__ == '__main__':
 
     # PCA reduction
     D_pca = compute_pca(C)
-    plot_pca_scatter(D_pca, L)
+    plot_scatter(D_pca, L, 1, -1)
+    plot_hist(D_pca, L)
 
     # LDA reduction
     D_lda = compute_lda(D, L)
-    # numpy.linalg.svd(numpy.hstack([U, V]))[1]
-    plot_pca_scatter(D_lda, L)
-
-
-    
+    plot_scatter(D_lda, L, 1, 1)
+    plot_hist(D_lda, L)
