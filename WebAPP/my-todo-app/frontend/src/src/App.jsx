@@ -1,15 +1,15 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 
+import NavHeader from "./components/NavHeader";
+import AddTask from "./components/AddTask";
 import TasksList from "./components/TasksList";
 
 
 function App() {
   return (
     <div>
-      <h1>My To-Do App</h1>
+      <NavHeader />
+      <AddTask />
       <TasksList />
     </div>
   );
