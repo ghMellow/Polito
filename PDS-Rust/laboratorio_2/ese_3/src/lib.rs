@@ -313,7 +313,7 @@ pub mod circular_buffer_heterogenous {
 pub mod circular_buffer_heterogenous_static {
     use std::fmt::Debug;
     use std::any::Any;
-    use std::ops::{Deref, Index, IndexMut};
+    use std::ops::{Deref, DerefMut, Index, IndexMut};
 
     // Trait modificato per usare un lifetime esplicito invece di 'static
     pub trait BufferItem<'a>: Debug + Any {
@@ -478,6 +478,43 @@ pub mod circular_buffer_heterogenous_static {
             }
 
             &self.buffer[self.head..self.tail]
+        }
+    }
+
+    // Definizione del trait Personalizzato, TryDeref non fa parte della libreria std::ops
+    // la definiamo simile a quella di libreria: Target più Error
+    pub trait TryDeref<'a> {
+        /// Aggiunta del bound ?Sized a type Target: ?Sized.
+        /// Questo è importante e corretto perché permette a Target di essere un tipo con dimensione
+        /// sconosciuta a tempo di compilazione (come i slice [T] o i trait objects). Il trait Deref standard di Rust fa lo stesso.
+        type Target: ?Sized;
+        type Error;
+
+        fn try_deref(&self) -> Result<&Self::Target, Self::Error>;
+    }
+
+    // Implementazione per la tua struttura
+    /// Nell'implementazione di TryDeref l'underscore '_ è un lifetime anonimo che il compilatore dedurrà automaticamente.
+    impl<'a> TryDeref<'_> for CircularBufferHeterogenousStatic<'a> {
+        type Target = [Option<Box<dyn BufferItem<'a>>>];
+        type Error = &'static str;
+
+        fn try_deref(&self) -> Result<&Self::Target, Self::Error> {
+            if self.head > self.tail && self.size > 0 {
+                return Err("Buffer is not contiguous!");
+            }
+
+            Ok(&self.buffer[self.head..self.tail])
+        }
+    }
+
+    impl<'a> DerefMut for CircularBufferHeterogenousStatic<'a> {
+        fn deref_mut(&mut self) -> &mut Self::Target {
+            if self.head > self.tail && self.size > 0 {
+                self.make_contiguous();
+            }
+
+            &mut self.buffer[self.head..self.tail]
         }
     }
 }

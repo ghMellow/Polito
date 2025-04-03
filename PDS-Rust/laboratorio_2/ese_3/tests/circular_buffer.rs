@@ -2,10 +2,11 @@ use ese_3::*;
 
 #[cfg(test)]
 mod tests {
-    use ese_3::circular_buffer_heterogenous::{BufferItem, CircularBufferHeterogenous};
+    use std::ops::{Deref, DerefMut};
+    use ese_3::circular_buffer_heterogenous::{CircularBufferHeterogenous};
     use ese_3::complex_number::solution::ComplexNumber;
     use super::circular_buffer::{CircularBuffer, Error};
-    use ese_3::circular_buffer_heterogenous_static::{CircularBufferHeterogenousStatic};
+    use ese_3::circular_buffer_heterogenous_static::{CircularBufferHeterogenousStatic, TryDeref};
 
     #[test]
     fn test_inserire_elemento_e_controllare_dimensione() {
@@ -267,9 +268,8 @@ mod tests {
     }
 
     #[test]
-    #[test]
     fn test_deref_functionality() {
-        let mut buffer = CircularBufferHeterogenous::new(5);
+        let mut buffer = CircularBufferHeterogenousStatic::new(5);
 
         // Inserisci elementi
         buffer.write(10i32).unwrap();
@@ -279,7 +279,7 @@ mod tests {
         // Rendi il buffer contiguo
         buffer.make_contiguous();
 
-        // Verifica che la lunghezza dello slice sia corretta
+        // Verifica che la lunghezza dello slice sia corretta usando 'DEREF'
         let slice_len = buffer.deref().len();
         assert_eq!(slice_len, 3);
 
@@ -298,7 +298,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Buffer is not contiguous!")]
     fn test_deref_panic_on_non_contiguous() {
-        let mut buffer = CircularBufferHeterogenous::new(5);
+        let mut buffer = CircularBufferHeterogenousStatic::new(5);
 
         // Crea una configurazione non contigua
         buffer.write(1i32).unwrap();
@@ -306,6 +306,7 @@ mod tests {
         buffer.read(); // Sposta head a 1
         buffer.write(3i32).unwrap();
         buffer.write(4i32).unwrap();
+        buffer.write(5i32).unwrap(); // Questo fa avvolgere tail a 0; vet da 0 a 4 elementi, 5 è il 0 nel buffer circolare
 
         // Verifica che il deref faccia panic su buffer non contiguo
         let _ = buffer.deref().len();
@@ -313,7 +314,7 @@ mod tests {
 
     #[test]
     fn test_deref_after_make_contiguous() {
-        let mut buffer = CircularBufferHeterogenous::new(5);
+        let mut buffer = CircularBufferHeterogenousStatic::new(5);
 
         // Crea configurazione non contigua
         buffer.write(1i32).unwrap();
@@ -327,6 +328,45 @@ mod tests {
         // Verifica lunghezza
         let slice_len = buffer.deref().len();
         assert_eq!(slice_len, 2);
+
+        // Verifica valori usando Index
+        let value = buffer[0].as_any().downcast_ref::<i32>().unwrap();
+        assert_eq!(*value, 2);
+
+        let value = buffer[1].as_any().downcast_ref::<i32>().unwrap();
+        assert_eq!(*value, 3);
+    }
+
+    #[test]
+    fn test_try_deref_error_on_non_contiguous() {
+        let mut buffer = CircularBufferHeterogenousStatic::new(5);
+
+        buffer.write(1i32).unwrap();
+        buffer.write(2i32).unwrap();
+        buffer.read(); // Sposta head a 1
+        buffer.write(3i32).unwrap();
+        buffer.write(4i32).unwrap();
+        buffer.write(5i32).unwrap(); // Fa avvolgere tail a 0
+
+        // Verifica che try_deref restituisca un errore
+        assert!(buffer.try_deref().is_err());
+    }
+
+    #[test]
+    fn test_derefmut_should_work_for_non_contiguous() {
+        let mut buffer = CircularBufferHeterogenousStatic::new(5);
+
+        // Crea configurazione non contigua
+        buffer.write(1i32).unwrap();
+        buffer.write(2i32).unwrap();
+        buffer.read(); // Sposta head a 1
+        buffer.write(3i32).unwrap();
+        buffer.write(4i32).unwrap();
+        buffer.write(5i32).unwrap(); // Fa avvolgere tail a 0
+
+        // Verifica lunghezza
+        let slice_len = buffer.deref_mut().len(); // unwrap del result
+        assert_eq!(slice_len, 4);
 
         // Verifica valori usando Index
         let value = buffer[0].as_any().downcast_ref::<i32>().unwrap();
