@@ -163,11 +163,11 @@ mod tests {
         buffer.write(2).unwrap();
         buffer.write(3).unwrap();
         buffer.write(4).unwrap();
-        buffer.write(5).unwrap();
+        buffer.write(5).unwrap(); // tail = 0
 
         // Leggi alcuni elementi per spostare l'indice di lettura
         assert_eq!(buffer.read(), Some(1));
-        assert_eq!(buffer.read(), Some(2));
+        assert_eq!(buffer.read(), Some(2)); // head = 2
 
         // Aggiungi nuovi elementi
         buffer.write(6).unwrap();

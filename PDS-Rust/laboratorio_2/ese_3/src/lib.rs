@@ -481,8 +481,8 @@ pub mod circular_buffer_heterogenous_static {
         }
     }
 
-    // Definizione del trait Personalizzato, TryDeref non fa parte della libreria std::ops
-    // la definiamo simile a quella di libreria: Target più Error
+    /// Definizione del trait Personalizzato, TryDeref non fa parte della libreria std::ops
+    /// la definiamo simile a quella di libreria: Target più Error
     pub trait TryDeref<'a> {
         /// Aggiunta del bound ?Sized a type Target: ?Sized.
         /// Questo è importante e corretto perché permette a Target di essere un tipo con dimensione
