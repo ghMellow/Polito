@@ -7,7 +7,7 @@ import TasksList from "./components/TasksList";
 
 function App() {
   return (
-    <div>
+  <div className="w-full min-h-screen">
       <NavHeader />
       <AddTask />
       <TasksList />

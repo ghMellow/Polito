@@ -15,7 +15,7 @@ function TasksList() {
   }, []);
 
   return (
-    <div>
+    <div className="w-full pl-4 pr-4 pt-2 pb-4">
       <h2 align="left">To-Do List</h2>
       <table className="task-table">
         <thead>
