@@ -46,7 +46,7 @@ def logpdf_GAU_ND_fast(x, mu, C):
 
 
 def loglikelihood(XND, m_ML, C_ML):
-    ll = logpdf_GAU_ND_fast(XND, m_ML, C_ML)
+    ll = logpdf_GAU_ND_slow(XND, m_ML, C_ML)
     return np.sum(ll)
 
 
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     # We can visualize how well the estimated density fits the samples plotting both the histogram of the
     # samples and the density (again, m_ML and C_ML are the ML estimates):
     plt.figure()
-    X1D = np.load('Solution/XND.npy')
+    X1D = np.load('Solution/X1D.npy')
     m_ML, C_ML = compute_mean_covariance(X1D)
     #m_ML = np.array([1.9539157])
     #C_ML = np.array([6.09542485])
@@ -97,5 +97,5 @@ if __name__ == '__main__':
     plt.plot(XPlot.ravel(), np.exp(logpdf_GAU_ND_fast(vrow(XPlot), m_ML, C_ML)))
     plt.show()
     # In this case, the log-likelihood for the ML estimates is
-    ll = loglikelihood(XND, m_ML, C_ML)
+    ll = loglikelihood(X1D, m_ML, C_ML)
     print(f"ll: {ll} should match -23227.077654602715")
