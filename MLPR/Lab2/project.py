@@ -15,8 +15,8 @@ def plotHist(D, L):
         plt.ylabel("density") # dove si concentra il maggior numero dei dati
 
         # only the row(feature) intended
-        plt.hist(Dtrue[idFeature, :], bins=10, density=True, alpha=0.4, label='True')
-        plt.hist(Dfalse[idFeature, :], bins=10, density=True, alpha=0.4, label='False')
+        plt.hist(Dfalse[idFeature, :], bins=50, density=True, alpha=0.4, label='False Fingerprint')
+        plt.hist(Dtrue[idFeature, :], bins=50, density=True, alpha=0.4, label='True Fingerprint')
 
         plt.legend()
         plt.tight_layout()  # Adjust layout to prevent label cutoff

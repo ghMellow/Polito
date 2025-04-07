@@ -276,7 +276,7 @@ if __name__ == '__main__':
     # We will also employ PCA as a pre-processing for LDA.
 
     # 1.
-    #classification_with_lda(D, L)
+    classification_with_lda(D, L)
 
     # 2.
     #classification_with_pca(D, L)

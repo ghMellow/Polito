@@ -81,7 +81,7 @@ def compute_eigenvalues_eigenvectors(C, m):
 
 def compute_pca(C):
     m = C.shape[0]  # m determines the subspace, in this case we are not doing any reduction
-    P = compute_eigenvalues_eigenvectors(C, m)
+    P = compute_eigenvalues_eigenvectors(C, m) # solo quando è diagonale ho gli autovalori che rappresentano di ogni feature 
 
     # Finally, we can apply the projection to a single point x or to a matrix of samples D as
     # x = D[0][0] # e.g. of a point
