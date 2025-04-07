@@ -1,6 +1,7 @@
 // File: routes/tasks.js - Gestisce le operazioni sui task
 import express from 'express';
 import { dbPromise } from '../db/db.js';
+import dayjs from 'dayjs';
 
 const router = express.Router();
 
@@ -50,7 +51,7 @@ router.post('/', async (req, res) => {
         user_id || null,
         due_date || null,
         priority || 1,
-        new Date().toISOString(),
+        dayjs().add(1, 'day').format('YYYY-MM-DD'),
         completed ? 1 : 0
       ]
     );

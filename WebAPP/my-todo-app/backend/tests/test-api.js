@@ -1,5 +1,6 @@
 // test-api.js - Script per testare gli endpoint dell'API
 import fetch from 'node-fetch';
+import dayjs from 'dayjs';
 
 const API_URL = 'http://localhost:3001/api';
 let createdTaskId = null;
@@ -31,8 +32,9 @@ async function createTask() {
   const newTask = {
     text: 'Task di test creato via API',
     priority: 2,
-    due_date: new Date(Date.now() + 86400000).toISOString().split('T')[0] // Domani
+    due_date: dayjs().add(1, 'day').format('YYYY-MM-DD') // Domani con dayjs
   };
+  
   
   try {
     const response = await fetch(`${API_URL}/tasks`, {

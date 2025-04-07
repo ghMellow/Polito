@@ -35,10 +35,10 @@ function TasksList() {
               <td>{task.id}</td>
               <td>{task.text}</td>
               <td>{task.completed ? "Sì" : "No"}</td>
-              <td>{task.user_id || "N/A"}</td>
-              <td>{task.due_date || "N/A"}</td>
+              <td>{task.userId || "N/A"}</td>
+              <td>{task.dueDate || "N/A"}</td>
               <td>{task.priority}</td>
-              <td>{task.created_at}</td>
+              <td>{task.createdAt}</td>
             </tr>
           ))}
         </tbody>
