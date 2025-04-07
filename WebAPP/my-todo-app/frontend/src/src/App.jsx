@@ -10,6 +10,7 @@ function App() {
   <div className="w-full min-h-screen">
       <NavHeader />
       <AddTask />
+      <br /><br />
       <TasksList />
     </div>
   );
