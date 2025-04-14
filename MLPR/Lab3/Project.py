@@ -287,6 +287,3 @@ if __name__ == '__main__':
     # PCA as dimensionality reduction and LDA for classification
     m = 1
     prepocessing_with_pca_classification_with_lda(D, L, m)
-
-
-
