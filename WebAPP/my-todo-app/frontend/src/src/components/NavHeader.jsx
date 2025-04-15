@@ -1,23 +1,34 @@
 // NavHeader.jsx
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Navbar from 'react-bootstrap/Navbar';
+
 import logo from '../assets/todo.svg';
 
-/* 
-- display: flex → Dispone gli elementi figli sulla stessa riga.
-- alignItems: "center" → Li allinea verticalmente al centro.
-- marginLeft: "8px" → Dà un po' di spazio tra il logo e il testo.
- */
 
 function NavHeader() {
   return (
-    <div style={{ display: "flex", alignItems: "center" }}>
-      <img
-        alt="Todo Logo"
-        src={logo}
-        width="50"
-        height="50"
-      />
-      <h1 style={{ marginLeft: "8px" }}>Todo App</h1>
-    </div>
+    <Navbar bg="light">
+      <Container className="justify-content-md-center">
+        <Navbar.Brand>
+          <Row>
+            <Col>
+              <img
+                alt=""
+                src={logo}
+                width="30"
+                height="30"
+                className="d-inline-block align-top"
+              />{' '}
+            </Col>
+            <Col>
+              <h4>ToDo App</h4>
+            </Col>
+          </Row>
+        </Navbar.Brand>
+      </Container>
+    </Navbar>
   );
 }
 
