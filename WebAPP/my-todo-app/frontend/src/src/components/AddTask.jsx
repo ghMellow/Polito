@@ -1,6 +1,7 @@
 import { useActionState } from "react";
 import { Container, Form, Button, Row, Col, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 function AddTask() {
@@ -123,9 +124,9 @@ function AddTask() {
             <Button type="submit" variant="primary" className="me-2">
               Add Task
             </Button>
-            <Button type="button" variant="secondary" onClick={handleCancel}>
+            <Link to="/" className="btn btn-secondary">
               Cancel
-            </Button>
+            </Link>
           </Col>
         </Row>
       </Form>

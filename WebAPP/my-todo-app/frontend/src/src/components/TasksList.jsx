@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from 'react-router-dom';
+//import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {Table, Row, Col, Button, Container} from 'react-bootstrap';
 
 
 function TasksList() {
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
 
   const fetchTasks = () => {
@@ -69,6 +70,8 @@ function TasksList() {
       });
   };
 
+
+
   return (
     <Container className="justify-content-md-center">
       <Row>
@@ -76,9 +79,9 @@ function TasksList() {
           <h1>ToDo List</h1>
         </Col>
         <Col xs="auto" className="pe-4">
-          <Button variant="primary" onClick={() => navigate('/new')}>
-            Add new task
-          </Button>
+        <Link to="/new" className="btn btn-primary">
+          Add new task
+        </Link>
         </Col>
       </Row>
       <Row className="my-3">
@@ -198,6 +201,7 @@ function TaskData(props) {
 // Contiene i pulsanti di azione
 function TaskAction(props) {
   return (
+    <>
     <td>
       <Button 
         variant="primary"
@@ -206,6 +210,12 @@ function TaskAction(props) {
         <i className="bi bi-trash" />
       </Button>
     </td>
+    <td>
+    <Link to="/edit" className="btn btn-primary">
+      <i className="bi bi-pencil-square"></i>
+    </Link>
+    </td>
+    </>
   );
 }
 
