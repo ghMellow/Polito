@@ -3,8 +3,7 @@
 // - you have also to implement missing functions and fix the code
 // - *** see test functions in the code for usage examples
 
-use std::fs::File;
-use std::io::{self, BufRead, Read, read_to_string, BufReader};
+use std::io::{self};
 
 // (1) LineEditor: implement functionality
 pub struct LineEditor {
@@ -125,24 +124,26 @@ fn test_find_replace() {
 
     // now let's replace the matches
     // why this loop won't work?
-    for m in finder.matches() {
-        editor.replace(m.line, m.start, m.end, &m.repl.);
-    }
+    /*for m in finder.matches() {
+        if let Some(repl) = &m.repl { editor.replace(m.line, m.start, m.end, repl); }
+    }*/
 
     // alternate method: why this one works? 
 
-    //let mut subs = Vec::new();
-    //for m in finder.matches() {
-    //    subs.push( /** add match if repl is set */ );
-    //}
-    
-    //for (line, start, end, subst) in subs {
-    //    editor.replace(line, start, end, subst);
-    //}
+    let mut subs = Vec::new();
+    for m in finder.matches() {
+        if let Some(repl) = &m.repl {
+            subs.push((m.line, m.start, m.end, repl.to_string()));
+        }
+    }
+
+    for (line, start, end, subst) in subs {
+        editor.replace(line, start, end, &subst);
+    }
 
 }
 
-/*
+
 
 // (6) sometimes it's very expensive to find all the matches at once before applying 
 // the changes
@@ -156,13 +157,13 @@ struct FinderPos {
     pub offset: usize,
 }
 
-struct LazyFinder {
-    lines: Vec<&str>,
+struct LazyFinder<'a> {
+    lines: Vec<&'a str>,
     pattern: String,
     pos: Option<FinderPos>,
 }
 
-impl LazyFinder {
+impl<'a> LazyFinder<'a> {
     pub fn new(lines: Vec<&str>, pattern: &str) -> Self {
         unimplemented!()
     }
@@ -190,7 +191,7 @@ fn test_lazy_finder() {
         println!("{} {} {} {}", m.line, m.start, m.end, m.text);
     }
 }
-
+/*
 
 // (8) now you have everything you need to implement the real Iterator
 
