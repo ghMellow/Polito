@@ -2,13 +2,17 @@ import { useEffect, useState } from "react";
 //import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import {Table, Row, Col, Button, Container} from 'react-bootstrap';
+import { useTasks } from "./TaskContext";
 
 
 function TasksList() {
   //const navigate = useNavigate();
-  const [tasks, setTasks] = useState([]);
+  //const [tasks, setTasks] = useState([]);
 
-  const fetchTasks = () => {
+  const { tasks, setTasks, fetchTasks } = useTasks();
+
+
+  /*const fetchTasks = () => {
     fetch("http://localhost:3001/api/tasks")
       .then(response => response.json())
       .then(data => {
@@ -17,7 +21,7 @@ function TasksList() {
       .catch(error => {
         console.error("Errore nel recupero dei task:", error);
       });
-  };
+  };*/
 
   useEffect(() => {
     // Carica i task all'inizio
@@ -128,7 +132,7 @@ function TaskTable(props) {
     <Table responsive striped>
       <thead>
         <tr>
-          <th><i class="bi bi-bookmark-check"></i></th>
+          <th><i className="bi bi-bookmark-check"></i></th>
           <th onClick={() => handleSort("id")}>
             ID <i className={getSortIcon("id")}></i>
           </th>
@@ -211,7 +215,7 @@ function TaskAction(props) {
       </Button>
     </td>
     <td>
-    <Link to="/edit" className="btn btn-primary">
+    <Link to={`/edit/${props.task.id}`} className="btn btn-primary">
       <i className="bi bi-pencil-square"></i>
     </Link>
     </td>
