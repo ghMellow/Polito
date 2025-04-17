@@ -166,8 +166,8 @@ struct LazyFinder<'a> {
 }
 
 impl<'a> LazyFinder<'a> {
-    pub fn new(lines: Vec<&str>, pattern: &str) -> Self {
-        unimplemented!()
+    pub fn new(lines: Vec<&'a str>, pattern: &str) -> Self {
+        LazyFinder{ lines, pattern: pattern.to_string(), pos: Some(FinderPos{ line: 0, offset: 0 }) }
     }
 
     pub fn next(&mut self) -> Option<Match> {
@@ -175,45 +175,107 @@ impl<'a> LazyFinder<'a> {
         // return None if there are no more matches
         // return Some(Match) if there is a match
         // each time save the position of the match for the next call
-        unimplemented!()
+
+        let re = regex::Regex::new(self.pattern.as_str()).unwrap();
+
+        // Essendo valori opzionali usati tante volte al posto di usare la notazione .?. conviene
+        // fare un pattern matching condizionale. In questo modo dentro al if uso direttamente pos.
+        if let Some(pos) = self.pos.as_mut() {
+
+            for index in pos.line..self.lines.len() {
+                // Uso accesso diretto e non get(index).unwrap(); poichè essendo dentro un ciclo limitato
+                // nello spazio del vettore so di non poter sforare la dimensione. In altri casi meglio get.
+                let line = &self.lines[index];
+
+                // Se match partendo da ultimo offset estratto da Option il valore e salvo in match
+                if let Some(mat) = re.find_at(line, pos.offset) {
+                    pos.line = index;
+                    pos.offset = mat.end();
+                    return Some(
+                        Match {
+                            line: index,
+                            start: mat.start(),
+                            end: mat.end(),
+                            text: &line[mat.start()..mat.end()],  // riferimento no possesso del valore.  il riferimento al valore di text deve esistere finchè esiste l'istanza di Match
+                            repl: None
+                        }
+                    )
+                }
+            }
+            // Se no match nell'ultima riga e da offset salvato, devo azzerare offset per la prossima riga
+            pos.offset = 0;
+        }
+
+        None
     }
 }
 
 // (7) example of how to use the LazyFinder
 #[test]
 fn test_lazy_finder() {
-    let s = "Hello World.\nA second line full of text.";
-    let mut editor = LineEditor::new(s.to_string());
+    let s = "Hello World.\nA second ll line full of text.";
+    let editor = LineEditor::new(s.to_string());
 
     let lines = editor.all_lines();
     let mut finder = LazyFinder::new(lines, "ll");
 
     // find all the matches and accept them 
     while let Some(m) = finder.next() {
-        println!("{} {} {} {}", m.line, m.start, m.end, m.text);
+        println!("match found: {} {} {} {}", m.line, m.start, m.end, m.text);
     }
 }
-/*
+
 
 // (8) now you have everything you need to implement the real Iterator
 
-struct FindIter {
-    lines: Vec<&str>,
+struct FindIter<'a> {
+    lines: Vec<&'a str>,
     pattern: String,
     // ... other?
+    pos: Option<FinderPos>
 }
 
-impl FindIter {
-    pub fn new(lines: Vec<&str>, pattern: &str) -> Self {
-        unimplemented!()
+impl<'a> FindIter<'a> {
+    pub fn new(lines: Vec<&'a str>, pattern: &str) -> Self {
+        FindIter{ lines, pattern: pattern.to_string(), pos: Some(FinderPos{ line: 0, offset: 0 }) }
     }
 }
 
-impl Iterator for FindIter {
-    type Item = Match; // <== we inform the Iterator that we return a Match
+impl<'a> Iterator for FindIter<'a> {
+    type Item = Match<'a>; // <== we inform the Iterator that we return a Match
 
     fn next(&mut self) -> Option<Self::Item> {
-        unimplemented!()
+        let re = regex::Regex::new(self.pattern.as_str()).unwrap();
+
+        // Essendo valori opzionali usati tante volte al posto di usare la notazione .?. conviene
+        // fare un pattern matching condizionale. In questo modo dentro al if uso direttamente pos.
+        if let Some(pos) = self.pos.as_mut() {
+
+            for index in pos.line..self.lines.len() {
+                // Uso accesso diretto e non get(index).unwrap(); poichè essendo dentro un ciclo limitato
+                // nello spazio del vettore so di non poter sforare la dimensione. In altri casi meglio get.
+                let line = &self.lines[index];
+
+                // Se match partendo da ultimo offset estratto da Option il valore e salvo in match
+                if let Some(mat) = re.find_at(line, pos.offset) {
+                    pos.line = index;
+                    pos.offset = mat.end();
+                    return Some(
+                        Match {
+                            line: index,
+                            start: mat.start(),
+                            end: mat.end(),
+                            text: &line[mat.start()..mat.end()],  // riferimento no possesso del valore.  il riferimento al valore di text deve esistere finchè esiste l'istanza di Match
+                            repl: None
+                        }
+                    )
+                }
+            }
+            // Se no match nell'ultima riga e da offset salvato, devo azzerare offset per la prossima riga
+            pos.offset = 0;
+        }
+
+        None
     }
 }
 
@@ -232,5 +294,3 @@ fn test_find_iter() {
     
     }
 }
-
-*/
