@@ -283,10 +283,10 @@ impl<'a> Iterator for FindIter<'a> {
 #[test]
 fn test_find_iter() {
     let s = "Hello World.\nA second line full of text.";
-    let mut editor = LineEditor::new(s.to_string());
+    let editor = LineEditor::new(s.to_string());
 
     let lines = editor.all_lines();
-    let mut finder = FindIter::new(lines, "ll");
+    let finder = FindIter::new(lines, "ll");
 
     // find all the matches and accept them 
     for m in finder {
