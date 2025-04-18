@@ -156,7 +156,9 @@ pub mod simple_even_iter {
 
     }
 
-
+    use std::fs::File;
+    use std::io::{BufRead, BufReader};
+    use regex::Regex;
     // finally let's implement the grep command
     // (1) install the "walkdir" crate for walking over directories using an iterator
     // install also the "regex" crate for regular expressions
@@ -185,11 +187,25 @@ pub mod simple_even_iter {
     // add anything you need implement it
     struct GrepIter {
         inner: walkdir::IntoIter,
+        pattern: Regex,
+        // Per gestire i file aperti e le righe lette
+        current_file: Option<BufReader<File>>,
+        current_path: Option<String>,
+        current_line: usize,
     }
 
     impl GrepIter {
-        fn new(iter: walkdir::IntoIter) -> Self {
-            GrepIter { inner: iter }
+        fn new(iter: walkdir::IntoIter, pattern: &str) -> Result<Self, regex::Error> {
+            // Compiliamo il pattern regex
+            let regex = Regex::new(pattern)?;
+
+            Ok(GrepIter {
+                inner: iter,
+                pattern: regex,
+                current_file: None,
+                current_path: None,
+                current_line: 0,
+            })
         }
     }
 
@@ -198,39 +214,127 @@ pub mod simple_even_iter {
         type Item = Result<Match, walkdir::Error>;
 
         fn next(&mut self) -> Option<Self::Item> {
+            // Funzione helper per controllare il file corrente
+            let process_current_file = |grep_iter: &mut GrepIter| -> Option<Result<Match, walkdir::Error>> {
+                if let Some(ref mut file) = grep_iter.current_file {
+                    // Leggiamo il file riga per riga
+                    let mut line = String::new();
+                    loop {
+                        line.clear();
+                        match file.read_line(&mut line) {
+                            Ok(0) => {
+                                // Fine del file, reimpostiamo lo stato
+                                grep_iter.current_file = None;
+                                grep_iter.current_line = 0;
+                                return None; // Nessun match trovato in questo file
+                            }
+                            Ok(_) => {
+                                grep_iter.current_line += 1;
+                                // Controlliamo se la riga corrisponde al pattern
+                                if grep_iter.pattern.is_match(&line) {
+                                    return Some(Ok(Match {
+                                        file: grep_iter.current_path.clone().unwrap(),
+                                        line: grep_iter.current_line,
+                                        text: line.trim_end().to_string(),
+                                    }));
+                                }
+                                // Altrimenti, continuiamo con la prossima riga
+                            }
+                            Err(_e) => {
+                                // Errore di lettura
+                                //grep_iter.current_file = None;
+                                grep_iter.current_line = 0;
+                            }
+                        }
+                    }
+                }
+                None
+            };
+
+            // Se abbiamo un file aperto, proviamo prima a trovare un match in esso
+            if let Some(result) = process_current_file(self) {
+                return Some(result);
+            }
+
+            // Altrimenti, cerchiamo il prossimo file
+            while let Some(entry_result) = self.inner.next() {
+                match entry_result {
+                    Ok(entry) => {
+                        // Ignoriamo le directory
+                        if entry.file_type().is_file() {
+                            match File::open(entry.path()) {
+                                Ok(file) => {
+                                    self.current_file = Some(BufReader::new(file));
+                                    self.current_path = Some(entry.path().to_string_lossy().to_string());
+                                    self.current_line = 0;
+
+                                    // Ora che abbiamo aperto il file, proviamo a trovare un match
+                                    if let Some(result) = process_current_file(self) {
+                                        return Some(result);
+                                    }
+                                }
+                                Err(_) => {
+                                    // Ignoriamo i file che non possiamo aprire e continuiamo
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        // Restituiamo eventuali errori di walkdir
+                        return Some(Err(e));
+                    }
+                }
+            }
+
+            // Nessun altro file da elaborare
+            None
         }
     }
 
-    #[test]
-    fn test_grep_iter() {
-        let wdir = walkdir::WalkDir::new("/tmp");
-        let grep_iter = GrepIter::new(wdir.into_iter());
-        for entry in grep_iter {
-            match entry {
-                Ok(m) => { println!("File: {}, Line: {}, Text: {}", m.file, m.line, m.text); }
-                Err(e) => { println!("Error: {}", e); }
-            }
-        }
-    }
+
+    // #[test]
+    // fn test_grep_iter() {
+    //     let wdir = walkdir::WalkDir::new("/tmp");
+    //     let grep_iter = GrepIter::new(wdir.into_iter(), "test");
+    //     for entry in grep_iter {
+    //         match entry {
+    //             Ok(m) => { println!("File: {}, Line: {}, Text: {}", m.file, m.line, m.text); }
+    //             Err(e) => { println!("Error: {}", e); }
+    //         }
+    //     }
+    // }
 
     // (5) add grep() to IntoIter  (see the first example in EvenIter for i32)
 
-    trait Grep {
-        //....
+    // Ora definiamo il trait per aggiungere il metodo grep a walkdir::IntoIter
+    trait Grep: Sized {
+        fn grep(self, pattern: &str) -> Result<GrepIter, regex::Error>;
+    }
+    // Implementiamo il trait per walkdir::IntoIter
+    impl Grep for walkdir::IntoIter {
+        fn grep(self, pattern: &str) -> Result<GrepIter, regex::Error> {
+            GrepIter::new(self, pattern)
+        }
     }
 
-    /*
+
     #[test]
     fn test_grep() {
         let wdir = walkdir::WalkDir::new("/tmp");
-        let grep_iter = wdir.into_iter().grep();
-        for entry in grep_iter {
-            match entry {
-                Ok(m) => { println!("File: {}, Line: {}, Text: {}", m.file, m.line, m.text); }
-                Err(e) => { println!("Error: {}", e); }
-            }
+        // Gestiamo il possibile errore nella creazione del GrepIter
+        match wdir.into_iter().grep("TODO") {
+            Ok(grep_iter) => {
+                for entry in grep_iter {
+                    match entry {
+                        Ok(m) => println!("File: {}, Line: {}, Text: {}", m.file, m.line, m.text),
+                        Err(e) => println!("Error: {:?}", e),
+                    }
+                }
+            },
+            Err(e) => println!("Error creating grep iterator: {:?}", e),
         }
-    }*/
+    }
 
 }
 
