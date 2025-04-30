@@ -7,7 +7,12 @@ import { useTasks } from "./TaskContext";
 export function EditTaskForm() {
   const { id } = useParams();
   const { tasks, setTasks } = useTasks();
-  const task = tasks.find(t => t.id == id);
+  const task = tasks.find(t => t.id === parseInt(id));
+
+  console.log("Tasks from context:", tasks);
+  console.log("Task ID from URL:", id);
+  console.log("Task found:", task);
+
 
   if (task) {
     return <TaskForm task={task} setTasks={setTasks} />;
@@ -25,10 +30,11 @@ export function EditTaskForm() {
 export function TaskForm({ task, setTasks }) {
   const navigate = useNavigate();
 
+  // Corretto il formato e l'utilizzo dei campi per allinearsi con il backend
   const initialState = {
     text: task?.text || '',
     priority: task?.priority || '1',
-    due_date: task ? dayjs(task.due_date).format('YYYY-MM-DD') : dayjs().add(1, 'day').format('YYYY-MM-DD'),
+    dueDate: task?.dueDate ? dayjs(task.dueDate).format('YYYY-MM-DD') : dayjs().add(1, 'day').format('YYYY-MM-DD'),
     completed: task?.completed || false,
     error: null
   };
@@ -90,12 +96,12 @@ export function TaskForm({ task, setTasks }) {
           </Form.Select>
         </Form.Group>
 
-        <Form.Group className="mb-3" controlId="due_date">
+        <Form.Group className="mb-3" controlId="dueDate">
           <Form.Label>Due Date</Form.Label>
           <Form.Control
             type="date"
-            name="due_date"
-            defaultValue={state.due_date}
+            name="dueDate"
+            defaultValue={state.dueDate}
             min={dayjs().format('YYYY-MM-DD')}
           />
         </Form.Group>
@@ -120,4 +126,4 @@ export function TaskForm({ task, setTasks }) {
   );
 }
 
-export default TaskForm;
+export default EditTaskForm;
