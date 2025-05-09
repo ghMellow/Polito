@@ -216,6 +216,8 @@ pub fn main() {
     if args.len() > 1 {
         let functions = &args[2];
 
+
+        /** Bisognava usare la libreria Clap **/
         match functions.as_str() {
             "new" => {
                 let parameters: Vec<u8> = args[3]
