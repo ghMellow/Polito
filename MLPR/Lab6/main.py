@@ -72,18 +72,11 @@ def logpdf_GAU_ND_fast(x, mu, C):
             - 1 / 2 * numpy.linalg.slogdet(C)[1]  # 0: sign of the determinant # 1: absolute value of the determinant
             - 1 / 2 * (xc * (C_inv @ xc)).sum(0))
 
-
-def Multivariate_Gaussian_Classifier(DTR, LTR, DTE, LTE):
-    # - Multivariate Gaussian Classifier -
-    # (MVG) As we have seen, the classifier assumes that samples of each class c ∈{0,1,2}can be modeled as samples of a
-    # multivariate Gaussian distribution with class-dependent mean and covariance matrices.
+def Gau_MVG_ML_estimates(DTR, LTR, prior_probability):
     unique_classes = numpy.unique(LTR)    # Numero di classi uniche da Labels
     num_features = DTR.shape[0]           # Numero di caratteristiche nel Dataset
 
-    S = []  # Matrix to store the likelihoods (class conditional probability) of each class.
-            # Each row of the score matrix corresponds to a class, and contains the conditional log-likelihoods for all the samples for that class.
-    prior_probability = 1 / 3
-
+    S = []
     for i, class_label in enumerate(unique_classes):
         D_class = DTR[:, LTR == class_label]
 
@@ -100,6 +93,18 @@ def Multivariate_Gaussian_Classifier(DTR, LTR, DTE, LTE):
         # the following we assume that the three classes have the same prior probability P(c) = 1 /3. We can thus
         # compute the joint distribution for samples and classes.
         S.append(ll * prior_probability)
+    return numpy.vstack(S)
+def Multivariate_Gaussian_Classifier(DTR, LTR, DTE, LTE):
+    # - Multivariate Gaussian Classifier -
+    # (MVG) As we have seen, the classifier assumes that samples of each class c ∈{0,1,2}can be modeled as samples of a
+    # multivariate Gaussian distribution with class-dependent mean and covariance matrices.
+
+    # Data dal testo
+    prior_probability = 1 / 3
+
+    # Matrix to store the likelihoods (class conditional probability) of each class.
+    # Each row of the score matrix corresponds to a class, and contains the conditional log-likelihoods for all the samples for that class.
+    S = Gau_MVG_ML_estimates(DTR, LTR, prior_probability)
 
     SJoint = numpy.vstack(S) # ovvero fX,C (xt,c) = fX|C (xt|c)PC (c)
 
@@ -132,11 +137,7 @@ def Multivariate_Gaussian_Classifier(DTR, LTR, DTE, LTE):
     print(f"Accuratezza: {accuracy * 100:.1f}%")
     print(f"Tasso di errore: {error_rate * 100:.1f}%")
 
-
-def Naive_Bayes_Gaussian_Classifier(DTR, LTR, DTE, LTE):
-    # We now consider the Naive Bayes version of the classifier. As we have seen, the Naive Bayes version of
-    # the MVG is simply a Gaussian classifier where the covariance matrices are diagonal.
-
+def Gau_Naive_ML_estimates(DTR, LTR, prior_probability):
     # Same code but Covariance matrix we preserve only the diagonal value
     unique_classes = numpy.unique(LTR)  # Use training labels
     num_features = DTR.shape[0]  # Use training features
@@ -156,19 +157,105 @@ def Naive_Bayes_Gaussian_Classifier(DTR, LTR, DTE, LTE):
 
     # Compute likelihoods on test data
     S = []
-    prior_probability = 1 / 3
-
     for i, (mu, C) in enumerate(class_parameters):
         # Compute log-densities for all test samples using the parameters of class i
         ll = numpy.exp(logpdf_GAU_ND_fast(DTE, mu, C))
         S.append(ll * prior_probability)
+    # Joint distribution
+    return numpy.vstack(S)
+def Naive_Bayes_Gaussian_Classifier(DTR, LTR, DTE, LTE):
+    # We now consider the Naive Bayes version of the classifier. As we have seen, the Naive Bayes version of
+    # the MVG is simply a Gaussian classifier where the covariance matrices are diagonal.
+    unique_classes = numpy.unique(LTR)  # Use training labels
+    num_features = DTR.shape[0]  # Use training features
+
+    # Data dal testo
+    prior_probability = 1 / 3
 
     # Joint distribution
-    SJoint = numpy.vstack(S)
+    SJoint = Gau_Naive_ML_estimates(DTR, LTR, prior_probability)
 
     # Optional: Compare with solution if available
     try:
-        pdfSol = numpy.load('Solution/SJoint_MVG.npy')
+        pdfSol = numpy.load('Solution/SJoint_NaiveBayes.npy')
+        is_equal = numpy.allclose(SJoint, pdfSol)
+        print(f"I risultati sono uguali: {is_equal}")
+        if not is_equal:
+            max_diff = numpy.max(numpy.abs(SJoint - pdfSol))
+            print(f"Differenza massima: {max_diff}")
+    except FileNotFoundError:
+        print("Solution file not found, skipping comparison")
+
+    # Compute marginal and posterior probabilities
+    SMarginal = vrow(SJoint.sum(0))
+    SPosterior = SJoint / SMarginal
+
+    # Classification
+    predicted_labels = numpy.argmax(SPosterior, axis=0)
+
+    # Evaluation
+    correct_predictions = (predicted_labels == LTE).sum()
+    total_samples = LTE.size
+    accuracy = correct_predictions / total_samples
+    error_rate = 1 - accuracy
+
+    print(f"Accuratezza: {accuracy * 100:.1f}%")
+    print(f"Tasso di errore: {error_rate * 100:.1f}%")
+
+    # Add confusion matrix for better insight
+    conf_matrix = numpy.zeros((len(unique_classes), len(unique_classes)), dtype=int)
+    for i in range(len(LTE)):
+        conf_matrix[LTE[i], predicted_labels[i]] += 1
+
+    print("\nMatrice di confusione:")
+    print(conf_matrix)
+
+def Gau_Tied_ML_estimates(DTR, LTR):
+    # Same code but Covariance matrix we preserve only the diagonal value
+    unique_classes = numpy.unique(LTR)  # Use training labels
+    num_features = DTR.shape[0]  # Use training features
+
+    # Store class parameters (trained on training data)
+    class_parameters = []
+    tied_C = 0
+
+    # Train the model (estimate parameters from training data)
+    for class_label in unique_classes:
+        DTR_class = DTR[:, LTR == class_label]
+        mu, C = compute_mean_covariance(DTR_class)
+
+        tied_C += C * DTR.shape[1]
+
+        class_parameters.append((mu, C))
+        print(f"\nClass {class_label} \nmean: \n{mu} \ncovariance: \n{C}")
+
+    tied_C = tied_C / DTR.shape[1]
+
+    # Compute likelihoods on test data
+    S = []
+    prior_probability = 1 / 3
+
+    for i, (mu, C) in enumerate(class_parameters):
+        # Compute log-densities for all test samples using the parameters of class i
+        ll = numpy.exp(logpdf_GAU_ND_fast(DTE, mu, tied_C))
+        S.append(ll * prior_probability)
+
+    # Joint distribution
+    return numpy.vstack(S)
+def Tied_Bayes_Gaussian_Classifier(DTR, LTR, DTE, LTE):
+    # We now consider the Naive Bayes version of the classifier. As we have seen, the Naive Bayes version of
+    # the MVG is simply a Gaussian classifier where the covariance matrices are diagonal.
+
+    # Same code but Covariance matrix we preserve only the diagonal value
+    unique_classes = numpy.unique(LTR)  # Use training labels
+    num_features = DTR.shape[0]  # Use training features
+
+    # Joint distribution
+    SJoint = Gau_Tied_ML_estimates(DTR, LTR)
+
+    # Optional: Compare with solution if available
+    try:
+        pdfSol = numpy.load('Solution/SJoint_TiedMVG.npy')
         is_equal = numpy.allclose(SJoint, pdfSol)
         print(f"I risultati sono uguali: {is_equal}")
         if not is_equal:
@@ -202,78 +289,50 @@ def Naive_Bayes_Gaussian_Classifier(DTR, LTR, DTE, LTE):
     print(conf_matrix)
 
 
-def compute_Sb_Sw(D, L):
-    Sb = 0
-    Sw = 0
-    muGlobal = vcol(D.mean(1))
-    for i in numpy.unique(L):
-        DCls = D[:, L == i]
-        mu = vcol(DCls.mean(1))
-        Sb += (mu - muGlobal) @ (mu - muGlobal).T * DCls.shape[1]
-        Sw += (DCls - mu) @ (DCls - mu).T
-    return Sb / D.shape[1], Sw / D.shape[1]
+def BinaryTasks_loglikelihood_ratios_with_MVG(DTR, LTR, DTE, LTE):
+    hParams_MVG = Gau_MVG_ML_estimates(DTR, LTR, 1)  # Estimate model parameters
+    LLR = logpdf_GAU_ND_fast(DTE, hParams_MVG[2][0], hParams_MVG[2][1]) - logpdf_GAU_ND_fast(DTE, hParams_MVG[1][0], hParams_MVG[1][1])  # Compute LLRs
 
+    # Compute predictions
+    PVAL = numpy.zeros(DTE.shape[1], dtype=numpy.int32)
+    TH = 0
+    PVAL[LLR >= TH] = 2
+    PVAL[LLR < TH] = 1
+    print("MVG - Error rate: %.1f%%" % ((PVAL != LTE).sum() / float(LTE.size) * 100))
 
-def logpdf_GAU_ND(x, mu, C):
-    P = numpy.linalg.inv(C)
-    return -0.5*x.shape[0]*numpy.log(numpy.pi*2) - 0.5*numpy.linalg.slogdet(C)[1] - 0.5 * ((x-mu) * (P @ (x-mu))).sum(0)
+def BinaryTasks_loglikelihood_ratios_with_TG(DTR, LTR, DTE, LTE):
+    # Tied model
+    hParams_Tied = Gau_Tied_ML_estimates(DTR, LTR)
+    LLR = logpdf_GAU_ND_fast(DTE, hParams_Tied[2][0], hParams_Tied[2][1]) - logpdf_GAU_ND_fast(DTE, hParams_Tied[1][0], hParams_Tied[1][1])
 
-# Compute per-class log-densities. We assume classes are labeled from 0 to C-1. The parameters of each class are in hParams (for class i, hParams[i] -> (mean, cov))
-def compute_log_likelihood_Gau(D, hParams):
-
-    S = numpy.zeros((len(hParams), D.shape[1]))
-    for lab in range(S.shape[0]):
-        S[lab, :] = logpdf_GAU_ND(D, hParams[lab][0], hParams[lab][1])
-    return S
-
-# compute log-postorior matrix from log-likelihood matrix and prior array
-def compute_logPosterior(S_logLikelihood, v_prior):
-    SJoint = S_logLikelihood + vcol(numpy.log(v_prior))
-    SMarginal = vrow(scipy.special.logsumexp(SJoint, axis=0))
-    SPost = SJoint - SMarginal
-    return SPost
-
-# Compute a dictionary of ML parameters for each class - Tied Gaussian model
-# We exploit the fact that the within-class covairance matrix is a weighted mean of the covraince matrices of the different classes
-def Gau_Tied_ML_estimates(D, L):
-    labelSet = set(L)
-    hParams = {}
-    hMeans = {}
-    CGlobal = 0
-    for lab in labelSet:
-        DX = D[:, L==lab]
-        mu, C_class = compute_mean_covariance(DX)
-        CGlobal += C_class * DX.shape[1]
-        hMeans[lab] = mu
-    CGlobal = CGlobal / D.shape[1]
-    for lab in labelSet:
-        hParams[lab] = (hMeans[lab], CGlobal)
-    return hParams
-
-def BinaryTasks_loglikelihood_ratios_and_MVG(DTR, LTR, DTE, LTE):
-    None
+    PVAL = numpy.zeros(DTE.shape[1], dtype=numpy.int32)
+    TH = 0
+    PVAL[LLR >= TH] = 2
+    PVAL[LLR < TH] = 1
+    print("Tied - Error rate: %.1f%%" % ((PVAL != LTE).sum() / float(LTE.size) * 100))
 
 if __name__ == '__main__':
     fname = "iris.csv"
     D, L = load_dataset(fname)
 
     # DTR and LTR are training data and labels, DTE and LTE are evaluation (or more precisely validation) data and labels
-    (DTR, LTR), (DTE, LTE) = split_db_2to1(D, L)
+    #(DTR, LTR), (DTE, LTE) = split_db_2to1(D, L)
 
-    # first model
-    # Multivariate_Gaussian_Classifier(DTR, LTR, DTE, LTE)
+    # MVG
+    #Multivariate_Gaussian_Classifier(DTR, LTR, DTE, LTE)
 
-    #
-    # Naive_Bayes_Gaussian_Classifier(DTR, LTR, DTE, LTE)
+    # NG (UVG)
+    #Naive_Bayes_Gaussian_Classifier(DTR, LTR, DTE, LTE)
 
-    hParams_Tied = Gau_Tied_ML_estimates(DTR, LTR)
-    for lab in [0, 1, 2]:
-        print('Tied Gaussian - Class', lab)
-        print(hParams_Tied[lab][0])
-        print(hParams_Tied[lab][1])
-        print()
+    # TG
+    #Tied_Bayes_Gaussian_Classifier(DTR, LTR, DTE, LTE)
 
-    S_logLikelihood = compute_log_likelihood_Gau(DTE, hParams_Tied)
-    S_logPost = compute_logPosterior(S_logLikelihood, numpy.ones(3) / 3.)
-    PVAL = S_logPost.argmax(0)
-    print("Tied Gaussian - Error rate: %.1f%%" % ((PVAL != LTE).sum() / float(LTE.size) * 100))
+    # Binary Classification
+    # solo due attributi/label (iris versicolor 1 e virginica 2)
+    mask = (L == 1) | (L == 2)
+    DB = D[:, mask]
+    LB = L[mask]
+    (DTR, LTR), (DTE, LTE) = split_db_2to1(DB, LB)
+
+    BinaryTasks_loglikelihood_ratios_with_MVG(DTR, LTR, DTE, LTE)
+    BinaryTasks_loglikelihood_ratios_with_TG(DTR, LTR, DTE, LTE)
