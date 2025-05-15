@@ -1,0 +1,48 @@
+x-constants:
+    # name & 'nome ancor riusabile' value
+    port: &app_port 8080
+    mysql_root_password: &mysql_root_password rootpassword
+    mysql_database: &mysql_database app_db
+    mysql_user: &mysql_user app_user
+    mysql_password: &mysql_password userpassword
+
+services:
+    web:
+        container_name: my-application
+        depends_on:
+            - mysql
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+        ports:
+            - "9000:8080"
+        volumes:
+            - .:/usr/src/app
+        environment:
+            PORT: *app_port # variabile instanziata dentro venv, usata da express
+        command: node app.js
+    
+    mysql:
+        image: mysql:8
+        container_name: mysql-db
+        ports:
+            - "3306:3306"  # Expose MySQL default port
+                           # Nota: il servizio MySQL espone di default la porta 3306
+        environment:
+            MYSQL_ROOT_PASSWORD: *mysql_root_password
+            MYSQL_DATABASE: *mysql_database
+            MYSQL_USER: *mysql_user
+            MYSQL_PASSWORD: *mysql_password
+        expose:
+            - "3306"  # Make MySQL port accessible to linked services
+        volumes:
+            - my-db:/var/lib/mysql  # Persist database data
+                                    # Dice a Docker: "Monta il volume my-db nella directory /var/lib/mysql del container".
+                                    # /var/lib/mysql è la directory dove MySQL salva i dati del database.
+                                    # In questo modo, anche se il container viene ricreato, i dati restano.
+
+volumes:
+    my-db:  # Named volume for MySQL persistence
+            # Qui dichiari che my-db è un volume nominato da creare o usare se esiste.
+            # È una dichiarazione necessaria per volumi personalizzati.
+            # Senza la seconda parte, Docker potrebbe comunque creare il volume in automatico, ma è best practice dichiararlo esplicitamente.
