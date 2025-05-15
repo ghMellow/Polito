@@ -99,12 +99,30 @@ def Multivariate_Gaussian_Classifier(DTR, LTR, DTE, LTE):
     # (MVG) As we have seen, the classifier assumes that samples of each class c ∈{0,1,2}can be modeled as samples of a
     # multivariate Gaussian distribution with class-dependent mean and covariance matrices.
 
+    # Each row of the score matrix corresponds to a class, and contains the conditional log-likelihoods for all the samples for that class.
+    unique_classes = numpy.unique(LTR)  # Numero di classi uniche da Labels
+    num_features = DTR.shape[0]  # Numero di caratteristiche nel Dataset
     # Data dal testo
     prior_probability = 1 / 3
 
     # Matrix to store the likelihoods (class conditional probability) of each class.
-    # Each row of the score matrix corresponds to a class, and contains the conditional log-likelihoods for all the samples for that class.
-    S = Gau_MVG_ML_estimates(DTR, LTR, prior_probability)
+    S = []
+    for i, class_label in enumerate(unique_classes):
+        D_class = DTR[:, LTR == class_label]
+
+        # (1) Compute the ML estimates for the classifier parameters (µ0,Σ0),(µ1,Σ1),(µ2,Σ2).
+        mu, C = compute_mean_covariance(D_class)  # NOTE: TRAINING PHASE.
+        print(f"\nClass {class_label} \nmean: \n{mu} \ncovariance: \n{C}")
+
+        # (2) Given the estimated model, we now turn our attention towards inference for a test sample x. As we
+        # have seen, the final goal is to compute class posterior probabilities P(c|x). We split the process in three
+        # stages. The first step consists in computing, for each test sample, the likelihoods.
+        ll = numpy.exp(logpdf_GAU_ND_fast(DTE, mu, C))  # NOTE: INFERENCE PHASE ON TEST DATA.
+
+        # (3) We can now compute class posterior probabilities combining the score matrix with prior information. In
+        # the following we assume that the three classes have the same prior probability P(c) = 1 /3. We can thus
+        # compute the joint distribution for samples and classes.
+        S.append(ll * prior_probability)
 
     SJoint = numpy.vstack(S) # ovvero fX,C (xt,c) = fX|C (xt|c)PC (c)
 
@@ -290,26 +308,74 @@ def Tied_Bayes_Gaussian_Classifier(DTR, LTR, DTE, LTE):
 
 
 def BinaryTasks_loglikelihood_ratios_with_MVG(DTR, LTR, DTE, LTE):
-    hParams_MVG = Gau_MVG_ML_estimates(DTR, LTR, 1)  # Estimate model parameters
-    LLR = logpdf_GAU_ND_fast(DTE, hParams_MVG[2][0], hParams_MVG[2][1]) - logpdf_GAU_ND_fast(DTE, hParams_MVG[1][0], hParams_MVG[1][1])  # Compute LLRs
+    unique_classes = numpy.unique(LTR)
+    # Verifichiamo che ci siano esattamente 2 classi
+    assert len(unique_classes) == 2, "Expected binary classification task"
 
-    # Compute predictions
+    class_0, class_1 = unique_classes
+
+    # Calcolo parametri per classe 0
+    D_class_0 = DTR[:, LTR == class_0]
+    mu_0, C_0 = compute_mean_covariance(D_class_0)
+
+    # Calcolo parametri per classe 1
+    D_class_1 = DTR[:, LTR == class_1]
+    mu_1, C_1 = compute_mean_covariance(D_class_1)
+
+    # Calcolo dei log-likelihood (non dei likelihood)
+    ll_0 = logpdf_GAU_ND_fast(DTE, mu_0, C_0)
+    ll_1 = logpdf_GAU_ND_fast(DTE, mu_1, C_1)
+
+    # Calcolo del rapporto di log-likelihood
+    LLR = ll_1 - ll_0
+
+    # Predizioni
     PVAL = numpy.zeros(DTE.shape[1], dtype=numpy.int32)
     TH = 0
-    PVAL[LLR >= TH] = 2
-    PVAL[LLR < TH] = 1
-    print("MVG - Error rate: %.1f%%" % ((PVAL != LTE).sum() / float(LTE.size) * 100))
+    PVAL[LLR >= TH] = class_1
+    PVAL[LLR < TH] = class_0
+
+    # Calcolo dell'errore
+    error_rate = (PVAL != LTE).sum() / float(LTE.size) * 100
+    print(f"MVG - Error rate: {error_rate:.1f}%")
+
+    return error_rate
 
 def BinaryTasks_loglikelihood_ratios_with_TG(DTR, LTR, DTE, LTE):
-    # Tied model
-    hParams_Tied = Gau_Tied_ML_estimates(DTR, LTR)
-    LLR = logpdf_GAU_ND_fast(DTE, hParams_Tied[2][0], hParams_Tied[2][1]) - logpdf_GAU_ND_fast(DTE, hParams_Tied[1][0], hParams_Tied[1][1])
+    unique_classes = numpy.unique(LTR)
+    # Verifichiamo che ci siano esattamente 2 classi
+    assert len(unique_classes) == 2, "Expected binary classification task"
 
+    class_0, class_1 = unique_classes
+
+    # Calcolo parametri per classe 0
+    D_class_0 = DTR[:, LTR == class_0]
+    mu_0, C_0 = compute_mean_covariance(D_class_0)
+
+    # Calcolo parametri per classe 1
+    D_class_1 = DTR[:, LTR == class_1]
+    mu_1, C_1 = compute_mean_covariance(D_class_1)
+
+    C_tied = C_0 + C_1
+
+    # Calcolo dei log-likelihood (non dei likelihood)
+    ll_0 = logpdf_GAU_ND_fast(DTE, mu_0, C_tied)
+    ll_1 = logpdf_GAU_ND_fast(DTE, mu_1, C_tied)
+
+    # Calcolo del rapporto di log-likelihood
+    LLR = ll_1 - ll_0
+
+    # Predizioni
     PVAL = numpy.zeros(DTE.shape[1], dtype=numpy.int32)
     TH = 0
-    PVAL[LLR >= TH] = 2
-    PVAL[LLR < TH] = 1
-    print("Tied - Error rate: %.1f%%" % ((PVAL != LTE).sum() / float(LTE.size) * 100))
+    PVAL[LLR >= TH] = class_1
+    PVAL[LLR < TH] = class_0
+
+    # Calcolo dell'errore
+    error_rate = (PVAL != LTE).sum() / float(LTE.size) * 100
+    print(f"MVG - Error rate: {error_rate:.1f}%")
+
+    return error_rate
 
 if __name__ == '__main__':
     fname = "iris.csv"

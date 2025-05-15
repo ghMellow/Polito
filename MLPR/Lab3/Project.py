@@ -240,7 +240,7 @@ def prepocessing_with_pca_classification_with_lda(D, L, m):
     # and the columns of U are the corresponding eigenvectors
     P = U[:, 0:m]
 
-    # Projecting the data
+    # Projecting the data usando stesso P calcolato da DTR
     DTR_pca = project_dataset(P, DTR)
     DVAL_pca = project_dataset(P, DVAL)
 
