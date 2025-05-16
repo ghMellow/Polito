@@ -1,8 +1,7 @@
+use evalexpr::eval;
+use itertools::Itertools;
 use std::sync::{Arc, Mutex};
 use std::thread;
-use itertools::{Itertools, Permutations};
-use crate::primes::is_prime;
-use evalexpr::eval;
 
 pub fn mk_ops(symbols: &[char], n: usize) -> Vec<String> {
     if n == 0 {
@@ -71,8 +70,8 @@ pub fn verify(v: &[String], n_threads: usize) -> Vec<String> {
     // creo n thread e passo lo slice
     thread::scope(|s| {
         for i in 0..n_threads {
-            let mut thread_chunk = chunks[i].clone();
-            let mut thread_res = res.clone();
+            let thread_chunk = chunks[i]; // note: the type `[std::string::String]` does not implement `Clone`, .clone useless
+            let thread_res = res.clone();
             s.spawn(move || {
                 for expr in thread_chunk {
                     let result = eval(expr.as_str()).unwrap();

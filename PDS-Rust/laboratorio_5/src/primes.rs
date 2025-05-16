@@ -1,8 +1,7 @@
 use std::sync::atomic::AtomicU64;
-use std::sync::{Arc, Mutex};
 use std::sync::atomic::Ordering;
+use std::sync::{Arc, Mutex};
 use std::thread;
-use std::thread::current;
 
 pub fn is_prime(n: u64) -> bool {
     if n < 2 {
@@ -26,7 +25,7 @@ pub fn find_primes_sol1(limit: u64, n_threads: u64) -> Vec<u64> {
             let thread_primes = Arc::clone(&primes);
 
             s.spawn(move || {
-                let thread_id = thread::current().id();
+                // let thread_id = thread::current().id();
                 loop {
                     // Ottieni il valore corrente e incrementalo atomicamente
                     let current = thread_count.fetch_add(1, Ordering::SeqCst);
@@ -64,7 +63,7 @@ pub fn find_primes_sol2(limit: u64, n_threads: u64) -> Vec<u64> {
             let thread_primes = Arc::clone(&primes);
 
             s.spawn(move || {
-                let thread_id = thread::current().id();
+                // let thread_id = thread::current().id();
                 let mut current = start_value; // qui i count sono indipendenti
                 while current < limit {
                     if is_prime(current) {
