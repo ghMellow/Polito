@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from 'react-router-dom';
+//import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {Table, Row, Col, Button, Container} from 'react-bootstrap';
+import { useTasks } from "./TaskContext";
 
 
 function TasksList() {
-  const navigate = useNavigate();
-  const [tasks, setTasks] = useState([]);
+  //const navigate = useNavigate();
+  //const [tasks, setTasks] = useState([]);
 
-  const fetchTasks = () => {
+  const { tasks, setTasks, fetchTasks } = useTasks();
+
+
+  /*const fetchTasks = () => {
     fetch("http://localhost:3001/api/tasks")
       .then(response => response.json())
       .then(data => {
@@ -16,7 +21,7 @@ function TasksList() {
       .catch(error => {
         console.error("Errore nel recupero dei task:", error);
       });
-  };
+  };*/
 
   useEffect(() => {
     // Carica i task all'inizio
@@ -69,6 +74,8 @@ function TasksList() {
       });
   };
 
+
+
   return (
     <Container className="justify-content-md-center">
       <Row>
@@ -76,9 +83,9 @@ function TasksList() {
           <h1>ToDo List</h1>
         </Col>
         <Col xs="auto" className="pe-4">
-          <Button variant="primary" onClick={() => navigate('/new')}>
-            Add new task
-          </Button>
+        <Link to="/new" className="btn btn-primary">
+          Add new task
+        </Link>
         </Col>
       </Row>
       <Row className="my-3">
@@ -125,7 +132,7 @@ function TaskTable(props) {
     <Table responsive striped>
       <thead>
         <tr>
-          <th><i class="bi bi-bookmark-check"></i></th>
+          <th><i className="bi bi-bookmark-check"></i></th>
           <th onClick={() => handleSort("id")}>
             ID <i className={getSortIcon("id")}></i>
           </th>
@@ -198,6 +205,7 @@ function TaskData(props) {
 // Contiene i pulsanti di azione
 function TaskAction(props) {
   return (
+    <>
     <td>
       <Button 
         variant="primary"
@@ -206,6 +214,12 @@ function TaskAction(props) {
         <i className="bi bi-trash" />
       </Button>
     </td>
+    <td>
+    <Link to={`/edit/${props.task.id}`} className="btn btn-primary">
+      <i className="bi bi-pencil-square"></i>
+    </Link>
+    </td>
+    </>
   );
 }
 
