@@ -1,0 +1,42 @@
+CREATE TABLE
+    IF NOT EXISTS cards (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        text TEXT NOT NULL,
+        image_path TEXT NOT NULL,
+        misfortune_index REAL NOT NULL UNIQUE,
+        category TEXT NOT NULL,
+    );
+
+CREATE TABLE
+    IF NOT EXISTS game_cards (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        game_id INTEGER NOT NULL,
+        card_id INTEGER NOT NULL,
+        round_number INTEGER,
+        won BOOLEAN NOT NULL,
+        initial_card BOOLEAN DEFAULT FALSE,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (game_id) REFERENCES games (id) ON DELETE CASCADE,
+        FOREIGN KEY (card_id) REFERENCES cards (id)
+    );
+
+CREATE TABLE
+    IF NOT EXISTS games (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        status TEXT NOT NULL CHECK (status IN ('in_progress', 'won', 'lost')),
+        total_cards INTEGER DEFAULT 3,
+        wrong_guesses INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        completed_at DATETIME,
+        FOREIGN KEY (user_id) REFERENCES users (id)
+    );
+
+CREATE TABLE
+    IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        salt TEXT NOT NULL
+    );
