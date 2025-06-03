@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from "react-router";
 
 import DefaultLayout from "./components/DefaultLayout";
 import NotFound from "./components/NotFound";
+import Home from "./components/Home";
 import { LoginForm } from "./components/AuthComponents";
 import API from "./API/API.mjs";
 
@@ -25,7 +26,7 @@ function App() {
     try {
       const user = await API.logIn(credentials);
       setLoggedIn(true);
-      setMessage({msg: `Welcome, ${user.name}!`, type: 'success'});
+      setMessage({msg: `Welcome, ${user.username}!`, type: 'success'});
       setUser(user);
     }catch(err) {
       setMessage({msg: err, type: 'danger'});
@@ -42,7 +43,7 @@ function App() {
   return (
     <Routes>
       <Route element={ <DefaultLayout loggedIn={loggedIn} handleLogout={handleLogout} message={message} setMessage={setMessage} /> } >
-        <Route path="/" />
+        <Route path="/" element={<Home loggedIn={loggedIn} user={user} handleLogout={handleLogout} />} />
         <Route path='/login' element={loggedIn ? <Navigate replace to='/' /> : <LoginForm handleLogin={handleLogin} />} />
         <Route path="*" element={ <NotFound /> } />
       </Route>

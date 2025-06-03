@@ -1,5 +1,5 @@
 import { useActionState } from "react";
-import { Form, Button, Row, Col, Alert } from 'react-bootstrap';
+import { Form, Button, Alert, Card } from 'react-bootstrap';
 import { Link } from 'react-router';
 
 function LoginForm(props) {
@@ -20,34 +20,39 @@ function LoginForm(props) {
     }
 
     return (
-        <>
-            { isPending && <Alert variant="warning">Please, wait for the server's response...</Alert> }
-            <Row>
-                <Col md={6}>
-                    <Form action={formAction}>
-                        <Form.Group controlId='email' className='mb-3'>
-                            <Form.Label>Email</Form.Label>
-                            <Form.Control type='email' name='email' required />
-                        </Form.Group>
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
+            <div style={{ width: '100%', maxWidth: '35%' }}>
+                { isPending && <Alert variant="warning">Please, wait for the server's response...</Alert> }
+                <Card>
+                    <Card.Body>
+                        <Card.Title className="text-center mb-4">Login</Card.Title>
+                        <Form action={formAction}>
+                            <Form.Group controlId='email' className='mb-3'>
+                                <Form.Label>Email</Form.Label>
+                                <Form.Control type='email' name='email' required />
+                            </Form.Group>
 
-                        <Form.Group controlId='password' className='mb-3'>
-                            <Form.Label>Password</Form.Label>
-                            <Form.Control type='password' name='password' required minLength={6} />
-                        </Form.Group>
+                            <Form.Group controlId='password' className='mb-3'>
+                                <Form.Label>Password</Form.Label>
+                                <Form.Control type='password' name='password' required minLength={6} />
+                            </Form.Group>
 
-                        {state.error && <p className="text-danger">{state.error}</p>}
+                            {state.error && <p className="text-danger">{state.error}</p>}
 
-                        <Button type='submit' disabled={isPending}>Login</Button>
-                        <Link className='btn btn-danger mx-2 my-2' to={'/'} disabled={isPending}>Cancel</Link>
-                    </Form>
-                </Col>
-            </Row>
-        </>
+                            <div className="d-flex gap-2 justify-content-center">
+                                <Button type='submit' disabled={isPending} style={{ minWidth: '100px' }}>Login</Button>
+                                <Link className='btn btn-danger' to={'/'} disabled={isPending} style={{ minWidth: '100px' }}>Cancel</Link>
+                            </div>
+                        </Form>
+                    </Card.Body>
+                </Card>
+            </div>
+        </div>
     );
 }
 
 function LogoutButton(props) {
-  return <Button variant='outline-light' onClick={props.logout}>Logout</Button>;
+  return <Button variant='outline-danger' onClick={props.logout}>Logout </Button>;
 }
 
 export { LoginForm, LogoutButton };
