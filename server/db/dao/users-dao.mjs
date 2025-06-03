@@ -17,6 +17,7 @@ export const getUser = async (db, email, password) => {
           id: row.id, 
           username: row.username,
           email: row.email, 
+          image_path: row.image_path || "guest.png",
         };
         
         // Verifica password con crypto.scrypt (più sicuro di pbkdf2)
