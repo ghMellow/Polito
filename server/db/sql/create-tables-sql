@@ -4,7 +4,7 @@ CREATE TABLE
         text TEXT NOT NULL,
         image_path TEXT NOT NULL,
         misfortune_index REAL NOT NULL UNIQUE,
-        category TEXT NOT NULL,
+        category TEXT NOT NULL
     );
 
 CREATE TABLE

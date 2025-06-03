@@ -1,10 +1,10 @@
 import crypto from 'crypto';
 
-export const getUser = async (db, username, password) => {
+export const getUser = async (db, email, password) => {
   return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM users WHERE username = ?';
+    const sql = 'SELECT * FROM users WHERE email = ?';
     
-    db.get(sql, [username], (err, row) => {
+    db.get(sql, [email], (err, row) => {
       if (err) { 
         reject(err); 
       }
@@ -15,8 +15,8 @@ export const getUser = async (db, username, password) => {
         // Prepariamo l'oggetto utente pulito (senza dati sensibili)
         const user = {
           id: row.id, 
-          username: row.username, 
-          created_at: row.created_at
+          username: row.username,
+          email: row.email, 
         };
         
         // Verifica password con crypto.scrypt (più sicuro di pbkdf2)
@@ -24,7 +24,7 @@ export const getUser = async (db, username, password) => {
           if (err) reject(err);
           
           // Confronto timing-safe per evitare timing attacks
-          if (!crypto.timingSafeEqual(Buffer.from(row.password_hash, 'hex'), hashedPassword)) {
+          if (!crypto.timingSafeEqual(Buffer.from(row.password, 'hex'), hashedPassword)) {
             resolve(false);
           } else {
             resolve(user);
@@ -37,7 +37,7 @@ export const getUser = async (db, username, password) => {
 
 export const getUserById = async (db, userId) => {
   const query = `
-    SELECT id, email, created_at
+    SELECT id, username, email
     FROM users
     WHERE id = ?
   `;

@@ -6,6 +6,7 @@ import passport from 'passport';
 import LocalStrategy from 'passport-local';
 import session from 'express-session';
 import { getUser } from './db/dao/users-dao.mjs';
+import { dbPromise } from './db/db.mjs';
 
 // Routes imports
 import authRoutes from './routes/auth.mjs';
@@ -30,13 +31,16 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Passport configuration
-passport.use(new LocalStrategy(async function verify(username, password, cb) {
-  const user = await getUser(username, password);
-  if(!user)
-    return cb(null, false, 'Incorrect username or password.');
-    
-  return cb(null, user);
-}));
+passport.use(new LocalStrategy(
+  { usernameField: 'email', passwordField: 'password' },
+  async function verify(email, password, cb) {
+    const user = await getUser(dbPromise, email, password);
+    if(!user)
+      return cb(null, false, 'Incorrect email or password.');
+      
+    return cb(null, user);
+  }
+));
 
 passport.serializeUser(function (user, cb) {
   cb(null, user);
