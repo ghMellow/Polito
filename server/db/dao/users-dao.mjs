@@ -34,13 +34,3 @@ export const getUser = async (db, email, password) => {
     });
   });
 };
-
-export const getUserById = async (db, userId) => {
-  const query = `
-    SELECT id, username, email
-    FROM users
-    WHERE id = ?
-  `;
-  
-  return await db.get(query, [userId]);
-};

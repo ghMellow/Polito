@@ -12,6 +12,7 @@ import { dbPromise } from './db/db.mjs';
 import authRoutes from './routes/auth.mjs';
 import gameRoutes from './routes/games.mjs';
 import userRoutes from './routes/users.mjs';
+import cardRoutes from './routes/cards.mjs';
 
 
 // init express
@@ -29,6 +30,8 @@ const corsOptions = {
   credentials: true
 };
 app.use(cors(corsOptions));
+
+app.use('/images', express.static('public/images'));
 
 // Passport configuration
 passport.use(new LocalStrategy(
@@ -64,6 +67,7 @@ app.use(passport.authenticate('session'));
 app.use('/api/auth', authRoutes);
 app.use('/api/games', gameRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/cards', cardRoutes);
 
 // 404 handler per API non trovate
 app.use('/api/*', (req, res) => {
