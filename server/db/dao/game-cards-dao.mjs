@@ -81,6 +81,7 @@ export const getUserGameHistoryWithCards = (db, userId) => {
         g.status,
         g.total_cards,
         g.wrong_guesses,
+        g.correct_guesses,
         g.created_at,
         g.completed_at,
         c.id as card_id,
@@ -110,6 +111,7 @@ export const getUserGameHistoryWithCards = (db, userId) => {
               status: row.status,
               total_cards: row.total_cards,
               wrong_guesses: row.wrong_guesses,
+              correct_guesses: row.correct_guesses,
               created_at: row.created_at,
               completed_at: row.completed_at,
               cards: []
