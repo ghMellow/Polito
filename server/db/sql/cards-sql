@@ -3,7 +3,7 @@
 INSERT INTO cards (text, image_path, misfortune_index, category) VALUES
 ("Ti dimentichi la password dell università il giorno dell esame", "/images/password-forget.jpg", 2.5, "vita_universitaria"),
 ("Il distributore automatico mangia i tuoi 2 euro", "/images/vending-machine.jpg", 5.0, "vita_universitaria"),
-("Ti accorgi di aver sbagliato aula dopo 30 minuti di lezione", "/images/wrong-classroom.jpg", 8.5, "vita_universitaria"),
+("Ti accorgi di aver sbagliato aula dopo 30 minuti di lezione", "/images/1.png", 8.5, "vita_universitaria"),
 ("La stampante si inceppa 5 minuti prima della consegna", "/images/printer-jam.jpg", 12.0, "vita_universitaria"),
 ("Piove il giorno della laurea e non hai l ombrello", "/images/rain-graduation.jpg", 15.5, "vita_universitaria"),
 ("Il tuo gruppo di studio si scioglie a una settimana dall esame", "/images/group-split.jpg", 18.0, "vita_universitaria"),
