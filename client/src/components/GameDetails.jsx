@@ -187,9 +187,7 @@ function GameDetails(props) {
           .sort((a, b) => a.round_number - b.round_number)
           .map((card) => (            
           <Col key={card.id} md={6} lg={4}>
-            <Card className="h-100 border-2" style={{ 
-              borderColor: card.initial_card ? '#0dcaf0' : card.won ? '#198754' : '#dc3545' 
-            }}>
+            <Card className="h-100 border-2" >
               
               <Card.Body className="d-flex flex-column">
                 <div className="d-flex justify-content-between align-items-start mb-2">
