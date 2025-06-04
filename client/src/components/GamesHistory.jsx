@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import guestImg from '../assets/guest.png';
 import { Card, Row, Col, Badge, Spinner, Alert } from 'react-bootstrap';
 import { Link } from 'react-router';
 import { LogoutButton } from './AuthComponents';
 import API from '../API/API.mjs';
 import dayjs from 'dayjs';
+import JdenticonAvatar from './JdenticonAvatar';
 
 function GamesHistory(props) {
   const [userProfile, setUserProfile] = useState(null);
@@ -75,11 +75,9 @@ function GamesHistory(props) {
                 className="rounded-circle d-flex align-items-center justify-content-center overflow-hidden"
                 style={{ width: '120px', height: '120px' }}
               >
-                <img 
-                  src={guestImg}
-                  alt="User profile" 
-                  className="w-100 h-100"
-                  style={{ objectFit: 'cover' }}
+                <JdenticonAvatar 
+                  value={props.user.username || Math.random().toString(36).substring(2, 15)}  
+                  circular={true}
                 />
               </div>
             </Col>
