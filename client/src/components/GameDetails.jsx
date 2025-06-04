@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router';
-import { Card, Row, Col, Badge, Spinner, Alert, Button } from 'react-bootstrap';
+import { Card, Row, Col, Badge } from 'react-bootstrap';
 import { LogoutButton } from './AuthComponents';
 import API from '../API/API.mjs';
 import dayjs from 'dayjs';
@@ -8,39 +8,25 @@ import JdenticonAvatar from './JdenticonAvatar';
 
 function GameDetails(props) {
   const { gameId } = useParams();
-  const [userProfile, setUserProfile] = useState(null);
-  const [gameData, setGameData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [gameData, setGameData] = useState();
 
   useEffect(() => {
     const fetchGameDetails = async () => {
       if (props.loggedIn) {
         try {
-          setLoading(true);
           const profile = await API.getUserProfile();
-          setUserProfile(profile);
           
-          // Trova la partita specifica
           const game = profile.history.find(g => g.id === parseInt(gameId));
-          if (game) {
-            setGameData(game);
-          } else {
-            setError('Partita non trovata');
-          }
+          setGameData(game);
         } catch (err) {
-          setError('Errore nel caricamento dei dettagli della partita');
-          console.error('Errore nel caricamento:', err);
-        } finally {
-          setLoading(false);
+          console.error('Errore nel recupero dei dettagli della partita:', err);
+          setGameData(null);
         }
-      } else {
-        setLoading(false);
       }
     };
 
     fetchGameDetails();
-  }, [props.loggedIn, gameId]);
+  }, [gameId]);
 
   const formatDate = (dateString) => {
     return dayjs(dateString).format('DD MMMM YYYY, HH:mm');
@@ -67,44 +53,6 @@ function GameDetails(props) {
     }
     return card.round_number ? `Round ${card.round_number}` : 'N/A';
   };
-
-  if (!props.loggedIn) {
-    return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '55vh' }}>
-        <Alert variant="warning" className="text-center">
-          <h4>Accesso Richiesto</h4>
-          <p>Devi effettuare il login per visualizzare i dettagli delle partite.</p>
-          <Link to="/login" className="btn btn-primary">
-            Vai al Login
-          </Link>
-        </Alert>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '55vh' }}>
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Caricamento...</span>
-        </Spinner>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '55vh' }}>
-        <Alert variant="danger" className="text-center">
-          <h4>Errore</h4>
-          <p>{error}</p>
-          <Link to="/history" className="btn btn-outline-primary">
-            Torna allo Storico
-          </Link>
-        </Alert>
-      </div>
-    );
-  }
 
   return (
     <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '55vh' }}>
@@ -147,7 +95,7 @@ function GameDetails(props) {
                       to="/history" 
                       className="btn btn-outline-secondary text-muted btn-sm d-inline-flex align-items-center"
                     >
-                      📜 Storico
+                      📜 Storico partite
                     </Link>
                   </div>
                 </div>
@@ -184,12 +132,12 @@ function GameDetails(props) {
         </Card.Header>
         <Card.Body>
           <Row className="mb-3">
-            <Col md={6}>
+            <Col md={3}>
               <small className="text-muted d-block">Iniziata:</small>
               <strong>{formatDate(gameData.created_at)}</strong>
             </Col>
             {gameData.completed_at && (
-              <Col md={6}>
+              <Col md={3}>
                 <small className="text-muted d-block">Completata:</small>
                 <strong>{formatDate(gameData.completed_at)}</strong>
               </Col>
@@ -228,11 +176,7 @@ function GameDetails(props) {
           <h5 className="mb-0">🃏 Carte della Partita ({gameData.cards?.length || 0})</h5>
         </Card.Header>
         <Card.Body>
-          {gameData.cards && gameData.cards.length > 0 ? (
-            <RenderCardsList />
-          ) : (
-            <RenderEmptyCardsState />
-          )}
+        <RenderCardsList />
         </Card.Body>
       </Card>
     );
@@ -290,14 +234,6 @@ function GameDetails(props) {
           </Col>
         ))}
       </Row>
-    );
-  }
-
-  function RenderEmptyCardsState() {
-    return (
-      <div className="text-center py-4">
-        <p className="text-muted">Nessuna carta trovata per questa partita.</p>
-      </div>
     );
   }
 }
