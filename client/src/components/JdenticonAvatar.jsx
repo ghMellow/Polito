@@ -28,7 +28,6 @@ function JdenticonAvatar({
 
     try {
       const jdenticon = await loadJdenticon();
-      svgRef.current.innerHTML = '';
       jdenticon.update(svgRef.current, value);
     } catch (error) {
       console.error('Errore generazione identicon:', error);
