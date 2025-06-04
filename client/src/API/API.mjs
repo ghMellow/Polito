@@ -59,5 +59,9 @@ const getUserProfile = async () => {
   return await response.json();
 };
 
-const API = { logIn, getUserInfo, logOut, getUserProfile };
+const getImage = (imagePath) => {
+  return `${SERVER_URL}/api/cards/image/${imagePath}`;
+};
+
+const API = { logIn, getUserInfo, logOut, getUserProfile, getImage };
 export default API;
