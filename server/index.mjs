@@ -39,7 +39,7 @@ passport.use(new LocalStrategy(
   async function verify(email, password, cb) {
     const user = await getUser(dbPromise, email, password);
     if(!user)
-      return cb(null, false, 'Incorrect email or password.');
+      return cb(null, false, 'Email o password sbagliate.');
       
     return cb(null, user);
   }
