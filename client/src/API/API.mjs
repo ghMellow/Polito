@@ -9,11 +9,13 @@ const logIn = async (credentials) => {
     credentials: 'include',
     body: JSON.stringify(credentials),
   });
-  if(response.ok) {
+  if (response.ok) {
     const user = await response.json();
     return user;
   }
-  else {
+  else if (response.status === 401) {
+    throw "Email o password errate";
+  } else {
     const errDetails = await response.text();
     throw errDetails;
   }
@@ -31,7 +33,7 @@ const getUserInfo = async () => {
   }
 };
 
-const logOut = async() => {
+const logOut = async () => {
   const response = await fetch(SERVER_URL + '/api/auth/logout', {
     method: 'DELETE',
     credentials: 'include'
