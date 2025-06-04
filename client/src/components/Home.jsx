@@ -77,24 +77,26 @@ function Home(props) {
             <Link 
               to="/rules" 
               // className="btn btn-outline-info text-muted btn-sm d-inline-flex align-items-center"
-              className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center"
+              className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center text-decoration-none"
               style={{ height: '60px' }}
               >
-              📖 Regole
+              <div className="text-center fs-5">
+                📖 Regole
+              </div>
             </Link>
           </Col>
         </Row>
         <Row className="justify-content-center">
           <Col xs={8} sm={6}>
-            <Button 
-              variant={props.loggedIn ? "success" : "secondary"} 
-              className="w-100 d-flex align-items-center justify-content-center"
+            <Link 
+              to={props.loggedIn ? "/game" : "/demo"}
+              className={`btn ${props.loggedIn ? "btn-success" : "btn-secondary"} w-100 d-flex align-items-center justify-content-center text-decoration-none`}
               style={{ height: '60px' }}
             >
               <div className="text-center fs-5">
                 {props.loggedIn ? ' Gioca 🕹️' : ' Demo 🎯'}
-               </div>
-            </Button>
+              </div>
+            </Link>
           </Col>
         </Row>
       </div>

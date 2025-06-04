@@ -1,6 +1,6 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useEffect, useState } from "react";
-import { Routes, Route, Navigate } from "react-router";
+import { Routes, Route, Navigate, useNavigate } from "react-router";
 
 import DefaultLayout from "./components/DefaultLayout";
 import NotFound from "./components/NotFound";
@@ -15,6 +15,8 @@ function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [message, setMessage] = useState('');
   const [user, setUser] = useState('');
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -41,6 +43,7 @@ function App() {
     setLoggedIn(false);
     // clean up everything
     setMessage('');
+    navigate('/');
   };
 
   return (
