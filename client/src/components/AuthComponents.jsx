@@ -37,12 +37,12 @@ function LoginForm(props) {
                                 <Form.Control type='password' name='password' required minLength={6} />
                             </Form.Group>
 
-                            {state.error && <p className="text-danger">{state.error}</p>}
-
                             <div className="d-flex gap-2 justify-content-center">
                                 <Button type='submit' disabled={isPending} style={{ minWidth: '100px' }}>Login</Button>
-                                <Link className='btn btn-danger' to={'/'} disabled={isPending} style={{ minWidth: '100px' }}>Cancel</Link>
+                                <Link className='btn btn-danger' to={'/'} disabled={isPending} style={{ minWidth: '100px' }}>Annulla</Link>
                             </div>
+                            
+                            {state.error && <p className="text-danger">{state.error}</p>}
                         </Form>
                     </Card.Body>
                 </Card>
