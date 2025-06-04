@@ -76,21 +76,7 @@ export const getGameUsedCards = (db, gameId) => {
 export const getUserGameHistoryWithCards = (db, userId) => {
   return new Promise((resolve, reject) => {
     const sql = `
-      SELECT 
-        g.id as game_id,
-        g.status,
-        g.total_cards,
-        g.wrong_guesses,
-        g.correct_guesses,
-        g.created_at,
-        g.completed_at,
-        c.id as card_id,
-        c.text as card_text,
-        c.image_path,
-        c.misfortune_index,
-        gc.round_number,
-        gc.won,
-        gc.initial_card
+      SELECT *
       FROM games g
       JOIN game_cards gc ON g.id = gc.game_id
       JOIN cards c ON gc.card_id = c.id
@@ -120,7 +106,7 @@ export const getUserGameHistoryWithCards = (db, userId) => {
           
           gamesMap.get(row.game_id).cards.push({
             id: row.card_id,
-            text: row.card_text,
+            text: row.text,
             image_path: row.image_path,
             misfortune_index: row.misfortune_index,
             round_number: row.round_number,
