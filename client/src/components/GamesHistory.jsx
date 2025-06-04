@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Row, Col, Badge, Spinner, Alert } from 'react-bootstrap';
+import { Card, Row, Col, Badge } from 'react-bootstrap';
 import { Link } from 'react-router';
 import { LogoutButton } from './AuthComponents';
 import API from '../API/API.mjs';
@@ -8,24 +8,17 @@ import JdenticonAvatar from './JdenticonAvatar';
 
 function GamesHistory(props) {
   const [userProfile, setUserProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (props.loggedIn) {
         try {
-          setLoading(true);
           const profile = await API.getUserProfile();
           setUserProfile(profile);
         } catch (err) {
-          setError('Errore nel caricamento dello storico partite');
           console.error('Errore nel caricamento del profilo:', err);
-        } finally {
-          setLoading(false);
+          setUserProfile(null);
         }
-      } else {
-        setLoading(false);
       }
     };
 
@@ -37,24 +30,10 @@ function GamesHistory(props) {
   };
 
   const getStatusBadge = (status) => {
-    return status === 'won' ? 
-      <Badge bg="success">Vinta 🏆</Badge> : 
+    return status === 'won' ?
+      <Badge bg="success">Vinta 🏆</Badge> :
       <Badge bg="danger">Persa 😢</Badge>;
   };
-
-  if (!props.loggedIn) {
-    return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '55vh' }}>
-        <Alert variant="warning" className="text-center">
-          <h4>Accesso Richiesto</h4>
-          <p>Devi effettuare il login per visualizzare lo storico delle partite.</p>
-          <Link to="/login" className="btn btn-primary">
-            Vai al Login
-          </Link>
-        </Alert>
-      </div>
-    );
-  }
 
   return (
     <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '55vh' }}>
@@ -71,12 +50,12 @@ function GamesHistory(props) {
         <Card.Body className="p-4">
           <Row className="align-items-center">
             <Col xs="auto">
-              <div 
+              <div
                 className="rounded-circle d-flex align-items-center justify-content-center overflow-hidden"
                 style={{ width: '120px', height: '120px' }}
               >
-                <JdenticonAvatar 
-                  value={props.user.username || Math.random().toString(36).substring(2, 15)}  
+                <JdenticonAvatar
+                  value={props.user.username || Math.random().toString(36).substring(2, 15)}
                   circular={true}
                 />
               </div>
@@ -86,8 +65,8 @@ function GamesHistory(props) {
                 <div className="flex-grow-1 me-3">
                   <h4 className="mb-2">{props.user?.username || 'Utente'}</h4>
                   <p className="text-muted mb-3">{props.user?.email || ''}</p>
-                  <Link 
-                    to="/" 
+                  <Link
+                    to="/"
                     className="btn btn-outline-info text-muted btn-sm d-inline-flex align-items-center"
                   >
                     🏠 Torna alla Home
@@ -111,27 +90,13 @@ function GamesHistory(props) {
           <h5 className="mb-0">📜 Storico Partite</h5>
         </Card.Header>
         <Card.Body>
-          {loading ? (
-            <RenderLoadingState />
-          ) : error ? (
-            <Alert variant="danger">{error}</Alert>
-          ) : userProfile?.history?.length > 0 ? (
+          {userProfile?.history?.length > 0 ? (
             <RenderGamesList />
           ) : (
             <RenderEmptyState />
           )}
         </Card.Body>
       </Card>
-    );
-  }
-
-  function RenderLoadingState() {
-    return (
-      <div className="text-center py-4">
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Caricamento...</span>
-        </Spinner>
-      </div>
     );
   }
 
@@ -144,7 +109,10 @@ function GamesHistory(props) {
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-start mb-3">
                   <div>
-                    <h6 className="mb-1">Partita #{game.id}</h6>
+                    <div>
+                      <h6 className="mb-1">Partita #{game.id}</h6>
+                      {getStatusBadge(game.status)}
+                    </div>
                     <small className="text-muted">
                       Iniziata: {formatDate(game.created_at)}
                     </small>
@@ -156,9 +124,16 @@ function GamesHistory(props) {
                       </>
                     )}
                   </div>
-                  {getStatusBadge(game.status)}
+                  <div className="mt-3 d-flex justify-content-between align-items-center">
+                    <Link
+                      to={`/history/${game.id}`}
+                      className="btn btn-outline-primary btn-sm"
+                    >
+                      🔍 Vedi Dettagli
+                    </Link>
+                  </div>
                 </div>
-                
+
                 <Row className="text-center">
                   <Col xs={4}>
                     <div className="border-end">
@@ -173,24 +148,10 @@ function GamesHistory(props) {
                     </div>
                   </Col>
                   <Col xs={4}>
-                    <div className="fw-bold fs-4 text-success">
-                      {game.cards?.filter(card => card.won === 1).length || 0}
-                    </div>
+                    <div className="fw-bold fs-4 text-success">{game.correct_guesses}</div>
                     <small className="text-muted">Carte Vinte</small>
                   </Col>
                 </Row>
-
-                <div className="mt-3 d-flex justify-content-between align-items-center">
-                  <Link 
-                    to={`/history/${game.id}`}
-                    className="btn btn-outline-primary btn-sm"
-                  >
-                    🔍 Vedi Dettagli
-                  </Link>
-                  <small className="text-muted">
-                    {game.cards?.length || 0} carte in totale
-                  </small>
-                </div>
               </Card.Body>
             </Card>
           </div>
