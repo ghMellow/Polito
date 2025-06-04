@@ -1,7 +1,7 @@
-import guestImg from '../assets/guest.png';
 import { Card, Button, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router';
 import { LogoutButton } from './AuthComponents';
+import JdenticonAvatar from './JdenticonAvatar';
 
 function Home(props) {
   return (
@@ -24,18 +24,14 @@ function Home(props) {
                 style={{ width: '120px', height: '120px' }}
               >
                 {props.loggedIn ? (
-                  <img 
-                    src={guestImg}
-                    alt="User profile" 
-                    className="w-100 h-100"
-                    style={{ objectFit: 'cover' }}
+                  <JdenticonAvatar 
+                    value={props.user.username || Math.random().toString(36).substring(2, 15)}  
+                    circular={true}
                   />
                 ) : (
-                  <img 
-                    src={guestImg}
-                    alt="Utente ospite" 
-                    className="w-100 h-100"
-                    style={{ objectFit: 'cover' }}
+                  <JdenticonAvatar 
+                    value={Math.random().toString(36).substring(2, 15)}
+                    circular={true}
                   />
                 )}
               </div>
@@ -57,7 +53,7 @@ function Home(props) {
                   ) : (
                     <>
                       <h4 className="mb-2">Ospite</h4>
-                      <p className="text-muted mb-0">Fai il login per sbloccare tutte le funzionalità!</p>
+                      <p className="text-muted mb-0">Fai il login per usare tutte le funzionalità!</p>
                     </>
                   )}
                 </div>
