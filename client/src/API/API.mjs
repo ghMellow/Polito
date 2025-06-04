@@ -45,7 +45,7 @@ const logOut = async () => {
 const getUserProfile = async () => {
   const response = await fetch(SERVER_URL + '/api/users/profile', {
     method: 'GET',
-    credentials: 'include', // Include i cookie per l'autenticazione
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
     }
