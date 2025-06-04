@@ -26,7 +26,7 @@ function GameDetails(props) {
     };
 
     fetchGameDetails();
-  }, [gameId]);
+  }, [gameId, props.loggedIn]);
 
   const formatDate = (dateString) => {
     return dayjs(dateString).format('DD MMMM YYYY, HH:mm');
@@ -158,9 +158,7 @@ function GameDetails(props) {
               </div>
             </Col>
             <Col xs={4}>
-              <div className="fw-bold fs-3 text-success">
-                {gameData.cards?.filter(card => card.won === 1).length || 0}
-              </div>
+              <div className="fw-bold fs-3 text-success">{gameData.correct_guesses}</div>
               <small className="text-muted">Carte Vinte</small>
             </Col>
           </Row>
@@ -186,32 +184,39 @@ function GameDetails(props) {
     return (
       <Row className="g-3">
         {gameData.cards
-          .sort((a, b) => a.misfortune_index - b.misfortune_index)
-          .map((card, index) => (
+          .sort((a, b) => a.round_number - b.round_number)
+          .map((card) => (            
           <Col key={card.id} md={6} lg={4}>
             <Card className="h-100 border-2" style={{ 
-              borderColor: card.won ? '#198754' : card.initial_card ? '#0dcaf0' : '#dc3545' 
+              borderColor: card.initial_card ? '#0dcaf0' : card.won ? '#198754' : '#dc3545' 
             }}>
-              {card.image_path && (
-                <Card.Img 
-                  variant="top" 
-                  src={`http://localhost:3001${card.image_path}`}
-                  style={{ height: '150px', objectFit: 'cover' }}
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
-              )}
+              
               <Card.Body className="d-flex flex-column">
                 <div className="d-flex justify-content-between align-items-start mb-2">
-                  <small className="text-muted">#{index + 1}</small>
+                  {card.round_number ? (<small className="text-muted">Round #{card.round_number}</small>) : ''}
                   {getCardStatusBadge(card)}
                 </div>
                 
                 <Card.Text className="flex-grow-1">
                   {card.text}
                 </Card.Text>
-                
+
+                {card.image_path && (
+                  <img 
+                    src={API.getImage(card.image_path)}
+                    alt="Card image"
+                    className="img-fluid mb-3"
+                    style={{ 
+                      width: '100%', 
+                      height: 'auto',
+                      objectFit: 'contain'
+                    }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                )}
+              
                 <div className="mt-auto">
                   <div className="d-flex justify-content-between align-items-center mb-2">
                     <small className="text-muted">Indice Sfortuna:</small>
@@ -222,11 +227,6 @@ function GameDetails(props) {
                     >
                       {card.misfortune_index}
                     </Badge>
-                  </div>
-                  
-                  <div className="d-flex justify-content-between align-items-center">
-                    <small className="text-muted">Round:</small>
-                    <Badge bg="secondary">{getRoundText(card)}</Badge>
                   </div>
                 </div>
               </Card.Body>
