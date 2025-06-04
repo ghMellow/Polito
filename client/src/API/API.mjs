@@ -42,5 +42,22 @@ const logOut = async () => {
     return null;
 }
 
-const API = { logIn, getUserInfo, logOut };
+const getUserProfile = async () => {
+  const response = await fetch(SERVER_URL + '/api/users/profile', {
+    method: 'GET',
+    credentials: 'include', // Include i cookie per l'autenticazione
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+  }
+
+  return await response.json();
+};
+
+const API = { logIn, getUserInfo, logOut, getUserProfile };
 export default API;
