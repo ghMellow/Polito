@@ -14,10 +14,6 @@ router.get('/profile', isLoggedIn, async (req, res) => {
     const gameHistory = await getUserGameHistoryWithCards(db, user.id);
     
     res.json({
-      user: {
-        username: user.username,
-        email: user.email,
-      },
       history: gameHistory
     });
     
