@@ -1,37 +1,7 @@
-// add initial cards to a game (3 random cards at game start)
-export const addInitialCards = (db, gameId, cardIds) => {
+export const addRoundCard = (db, gameId, cardId, roundNumber, won, initialCard) => {
   return new Promise((resolve, reject) => {
     const sql = 'INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUES (?, ?, ?, ?, ?)';
-    const stmt = db.prepare(sql);
-    
-    let completed = 0;
-    let errors = [];
-    
-    cardIds.forEach(cardId => {
-      stmt.run([gameId, cardId, null, true, true], (err) => {
-        if (err) {
-          errors.push(err);
-        }
-        completed++;
-        
-        if (completed === cardIds.length) {
-          stmt.finalize();
-          if (errors.length > 0) {
-            reject(errors[0]);
-          } else {
-            resolve(completed);
-          }
-        }
-      });
-    });
-  });
-};
-
-// add a round card result (won or lost)
-export const addRoundCard = (db, gameId, cardId, roundNumber, won) => {
-  return new Promise((resolve, reject) => {
-    const sql = 'INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUES (?, ?, ?, ?, ?)';
-    db.run(sql, [gameId, cardId, roundNumber, won, false], function(err) {
+    db.run(sql, [gameId, cardId, roundNumber, won, initialCard], function(err) {
       if (err)
         reject(err);
       else
@@ -44,7 +14,7 @@ export const addRoundCard = (db, gameId, cardId, roundNumber, won) => {
 export const getGameWonCards = (db, gameId) => {
   return new Promise((resolve, reject) => {
     const sql = `
-      SELECT c.*, gc.round_number, gc.initial_card, gc.created_at as card_acquired_at
+      SELECT *
       FROM cards c
       JOIN game_cards gc ON c.id = gc.card_id
       WHERE gc.game_id = ? AND gc.won = 1
@@ -122,7 +92,7 @@ export const getUserGameHistoryWithCards = (db, userId) => {
 };
 
 // get current round number for a game
-export const getCurrentRoundNumber = (db, gameId) => {
+export const getNextRoundNumber = (db, gameId) => {
   return new Promise((resolve, reject) => {
     const sql = 'SELECT MAX(round_number) as max_round FROM game_cards WHERE game_id = ? AND round_number IS NOT NULL';
     db.get(sql, [gameId], (err, row) => {

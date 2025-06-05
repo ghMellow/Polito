@@ -1,24 +1,22 @@
 import express from 'express';
 import dayjs from 'dayjs';
-import { check, validationResult } from 'express-validator';
+import { param, check, validationResult } from 'express-validator';
 import { dbPromise } from '../db/db.mjs';
-
-// DAO imports
 import { getRandomCards, getCard } from '../db/dao/cards-dao.mjs';
 import {
   createGame,
   getGame,
-  getCurrentGame,
+  getUserGamesInProgress,
   updateGameStatus,
   incrementWrongGuesses,
-  incrementTotalCards
+  incrementTotalCards,
+  deleteGame
 } from '../db/dao/games-dao.mjs';
 import {
-  addInitialCards,
   addRoundCard,
   getGameWonCards,
   getGameUsedCards,
-  getCurrentRoundNumber
+  getNextRoundNumber
 } from '../db/dao/game-cards-dao.mjs';
 
 
@@ -29,24 +27,30 @@ const router = express.Router();
 router.post('/', async (req, res) => {
   try {
     const db = await dbPromise;
-    const userId = req.isAuthenticated() ? req.user.id : 0; // 0 per utenti anonimi
+    const userId = req.isAuthenticated() ? req.user.id : 0; // per utenti anonimi
 
     // Verifica se l'utente ha già una partita in corso e la elimina
-    const currentGame = await getCurrentGame(db, userId);
-    if (currentGame) {
-      // Elimina le carte della partita in corso
-      await deleteGameCards(db, currentGame.id);
-      // Elimina la partita in corso
-      await deleteGame(db, currentGame.id);
+    const inProgresGames = await getUserGamesInProgress(db, userId);
+    console.log(userId, 'Current games for user:', inProgresGames);
+    if (inProgresGames.length > 0) {
+      for (const currentGameInProgres of inProgresGames) {
+          await deleteGame(db, currentGameInProgres.id);
+      }
     }
 
     // Crea nuova partita
     const gameId = await createGame(db, userId);
 
     // Genera 3 carte iniziali casuali
-    const initialCards = await getRandomCards(db, 3);
-    await addInitialCards(db, gameId, initialCards.map(c => c.id));
-
+    const limit = 3;
+    const initialCards = await getRandomCards(db, limit);
+    const roundNumber = null;
+    const won = true;
+    const initialCard = true;
+    for (const card of initialCards) {
+      await addRoundCard(db, gameId, card.id, roundNumber, won, initialCard);
+    }
+    
     // Recupera le carte con tutti i dettagli per inviarle al client
     const gameCards = await getGameWonCards(db, gameId);
 
@@ -64,53 +68,14 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /api/games/:id - Get game status
-router.get('/:id', [
-  check('id').isInt({ min: 1 }).withMessage('Game ID must be a positive integer')
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(422).json({ errors: errors.array() });
-  }
-
-  try {
-    const db = await dbPromise;
-    const gameId = req.params.id;
-
-    const game = await getGame(db, gameId);
-    if (game.error) {
-      return res.status(404).json(game);
-    }
-
-    // Verifica che la partita appartenga all'utente (se autenticato)
-    if (req.isAuthenticated() && game.user_id !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied to this game' });
-    }
-
-    // Recupera le carte vinte
-    const cards = await getGameWonCards(db, gameId);
-
-    res.json({
-      id: game.id,
-      status: game.status,
-      totalCards: game.total_cards,
-      wrongGuesses: game.wrong_guesses,
-      createdAt: game.created_at,
-      completedAt: game.completed_at,
-      cards: cards
-    });
-
-  } catch (error) {
-    console.error('Errore nel recupero partita:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 router.post('/:id/round', [
-  check('id').isInt({ min: 1 }).withMessage('Game ID must be a positive integer')
+  param('id').isInt({ min: 1 }).withMessage('Game ID must be a positive integer')
 ], async (req, res) => {
+  console.log('POST /api/games/:id/round params:', req.params);
+  console.log('POST /api/games/:id/round body:', req.body);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('Validation errors:', errors.array());
     return res.status(422).json({ errors: errors.array() });
   }
 
@@ -133,9 +98,10 @@ router.post('/:id/round', [
     }
 
     // Per utenti anonimi: solo 1 round (demo)
+    const roundNumber = await getNextRoundNumber(db, gameId);
+    console.log('Current round number:', roundNumber);    
     if (!req.isAuthenticated()) {
-      const currentRound = await getCurrentRoundNumber(db, gameId);
-      if (currentRound > 1) {
+      if (roundNumber > 1) {
         return res.status(400).json({
           error: 'Demo game allows only one round. Please register to play full games.'
         });
@@ -146,24 +112,21 @@ router.post('/:id/round', [
     const usedCardIds = await getGameUsedCards(db, gameId);
 
     // Genera carta casuale non ancora usata
-    limit = 1;
-    hideMisfortune = true;
+    const limit = 1;
+    const hideMisfortune = true;
     const newCards = await getRandomCards(db, limit, hideMisfortune, usedCardIds);
     if (newCards.length === 0) {
       return res.status(400).json({ error: 'No more cards available' });
     }
 
     const roundCard = newCards[0];
-    const roundNumber = await getCurrentRoundNumber(db, gameId);
 
-    // Invia solo nome e immagine (NON l'indice di sfortuna!)
     res.json({
       roundNumber: roundNumber,
       card: {
         id: roundCard.id,
         name: roundCard.name,
         image_path: roundCard.image_path
-        // misfortune_index volutamente omesso!
       },
       timeout: 30000 // 30 secondi
     });
@@ -175,13 +138,16 @@ router.post('/:id/round', [
 });
 
 router.post('/:id/guess', [
-  check('gameId').isInt({ min: 1 }).withMessage('Game ID must be a positive integer'),
+  param('id').isInt({ min: 1 }).withMessage('Game ID must be a positive integer'),
   check('cardId').isInt({ min: 1 }).withMessage('Card ID must be a positive integer'),
-  check('position').isInt({ min: 0, max: 6 }).withMessage('Position must be between 0 and 6'),
+  check('position').isInt({ min: -1, max: 6 }).withMessage('Position must be between 0 and 6'),
   check('roundNumber').isInt({ min: 1 }).withMessage('Round number must be positive')
 ], async (req, res) => {
+  console.log('POST /api/games/:id/guess params:', req.params);
+  console.log('POST /api/games/:id/guess body:', req.body);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('Validation errors:', errors.array());
     return res.status(422).json({ errors: errors.array() });
   }
 
@@ -215,9 +181,11 @@ router.post('/:id/guess', [
     const cardCreatedTime = dayjs(roundCard.created_at);
     const timeDifference = currentTime.diff(cardCreatedTime, 'second');
 
+    const initialCard = false;
     if (timeDifference > 30) {
       // Tempo scaduto - carta persa e non mostrata
-      await addRoundCard(db, gameId, cardId, roundNumber, false);
+      const won = false;
+      await addRoundCard(db, gameId, cardId, roundNumber, won, initialCard);
       await incrementWrongGuesses(db, gameId);
 
       let gameStatus = 'in_progress';
@@ -258,7 +226,7 @@ router.post('/:id/guess', [
     const isCorrect = position === correctPosition;
 
     // Salva risultato del round
-    await addRoundCard(db, gameId, cardId, roundNumber, isCorrect);
+    await addRoundCard(db, gameId, cardId, roundNumber, isCorrect, initialCard);
 
     let gameStatus = 'in_progress';
     let message = '';
