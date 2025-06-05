@@ -27,15 +27,18 @@ export const getGame = (db, gameId) => {
   });
 };
 
-// get current active game for a user
-export const getCurrentGame = (db, userId) => {
+export const getUserGamesInProgress = (db, userId) => {
   return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM games WHERE user_id = ? AND status = "in_progress" ORDER BY created_at DESC LIMIT 1';
-    db.get(sql, [userId], (err, row) => {
+    const sql = `
+      SELECT * FROM games 
+      WHERE user_id = ? AND status == 'in_progress' 
+      ORDER BY completed_at DESC
+    `;
+    db.all(sql, [userId], (err, rows) => {
       if (err)
         reject(err);
       else
-        resolve(row || null);
+        resolve(rows);
     });
   });
 };

@@ -23,7 +23,7 @@ CREATE TABLE
 CREATE TABLE
     IF NOT EXISTS games (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
+        user_id INTEGER NOT NULL,
         status TEXT NOT NULL CHECK (status IN ('in_progress', 'won', 'lost')),
         total_cards INTEGER DEFAULT 3,
         wrong_guesses INTEGER DEFAULT 0,

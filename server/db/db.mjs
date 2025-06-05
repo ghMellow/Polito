@@ -4,4 +4,6 @@ const dbPromise = new sqlite3.Database('./db/misfortune-game-database.sqlite', (
   if (err) throw err;
 });
 
+dbPromise.run('PRAGMA foreign_keys = ON');
+
 export { dbPromise }; 
