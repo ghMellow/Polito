@@ -165,7 +165,7 @@ function GamesHistory(props) {
       <div className="text-center py-4">
         <h6 className="text-muted">Nessuna partita giocata ancora</h6>
         <p className="text-muted mb-3">Inizia la tua prima partita!</p>
-        <Link to="/" className="btn btn-primary">
+        <Link to="/game" className="btn btn-primary">
           🕹️ Gioca Ora
         </Link>
       </div>

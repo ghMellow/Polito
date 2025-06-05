@@ -6,6 +6,7 @@ import DefaultLayout from "./components/DefaultLayout";
 import NotFound from "./components/NotFound";
 import Home from "./components/Home";
 import Rules from "./components/Rules";
+import Game from "./components/Game"; 
 import GamesHistory from "./components/GamesHistory";
 import GameDetails from "./components/GameDetails"; 
 import { LoginForm } from "./components/AuthComponents";
@@ -52,6 +53,7 @@ function App() {
         <Route path="/" element={<Home loggedIn={loggedIn} user={user} handleLogout={handleLogout} />} />
         <Route path='/login' element={loggedIn ? <Navigate replace to='/' /> : <LoginForm handleLogin={handleLogin} />} />
         <Route path="/rules" element={<Rules />} />
+        <Route path="/game" element={<Game loggedIn={loggedIn} user={user}/>} />
         <Route path="/history" element={<GamesHistory loggedIn={loggedIn} user={user} handleLogout={handleLogout} />} />
         <Route path="/history/:gameId" element={<GameDetails loggedIn={loggedIn} user={user} handleLogout={handleLogout} />} />
         <Route path="*" element={ <NotFound /> } />

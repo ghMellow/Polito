@@ -63,5 +63,63 @@ const getImage = (imagePath) => {
   return `${SERVER_URL}/api/cards/image/${imagePath}`;
 };
 
-const API = { logIn, getUserInfo, logOut, getUserProfile, getImage };
+const createGame = async () => {
+  const response = await fetch(SERVER_URL + '/api/games', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+  }
+
+  return await response.json();
+};
+
+const startNewRound = async (gameId) => {
+  console.log("Starting new round for game ID mellow:", gameId);
+  const response = await fetch(SERVER_URL + `/api/games/${gameId}/round`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+  }
+
+  return await response.json();
+};
+
+const submitGuess = async (gameId, cardId, position, roundNumber) => {
+  const response = await fetch(SERVER_URL + `/api/games/${gameId}/guess`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      cardId: cardId,
+      position: position,
+      roundNumber: roundNumber
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+  }
+
+  return await response.json();
+};
+
+
+const API = { logIn, getUserInfo, logOut, getUserProfile, getImage, createGame, startNewRound, submitGuess};
 export default API;

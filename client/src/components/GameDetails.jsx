@@ -47,13 +47,6 @@ function GameDetails(props) {
       <Badge bg="danger">Persa ❌</Badge>;
   };
 
-  const getRoundText = (card) => {
-    if (card.initial_card) {
-      return 'Iniziale';
-    }
-    return card.round_number ? `Round ${card.round_number}` : 'N/A';
-  };
-
   return (
     <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '55vh' }}>
       <div style={{ width: '100%', maxWidth: '900px' }}>
