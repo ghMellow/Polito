@@ -93,7 +93,7 @@ function Home(props) {
         <Row className="justify-content-center">
           <Col xs={8} sm={6}>
             <Link 
-              to={props.loggedIn ? "/game" : "/demo"}
+              to="/game"
               className={`btn ${props.loggedIn ? "btn-success" : "btn-secondary"} w-100 d-flex align-items-center justify-content-center text-decoration-none`}
               style={{ height: '60px' }}
             >
