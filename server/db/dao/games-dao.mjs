@@ -32,7 +32,7 @@ export const getUserGamesInProgress = (db, userId) => {
     const sql = `
       SELECT * FROM games 
       WHERE user_id = ? AND status == 'in_progress' 
-      ORDER BY completed_at DESC
+      ORDER BY created_at DESC
     `;
     db.all(sql, [userId], (err, rows) => {
       if (err)
@@ -44,10 +44,10 @@ export const getUserGamesInProgress = (db, userId) => {
 };
 
 // update game status (won/lost)
-export const updateGameStatus = (db, gameId, status, totalCards) => {
+export const updateGameStatus = (db, gameId, status) => {
   return new Promise((resolve, reject) => {
-    const sql = 'UPDATE games SET status = ?, total_cards = ?, completed_at = CURRENT_TIMESTAMP WHERE id = ?';
-    db.run(sql, [status, totalCards, gameId], function(err) {
+    const sql = 'UPDATE games SET status = ? WHERE id = ?';
+    db.run(sql, [status, gameId], function(err) {
       if (err)
         reject(err);
       else
@@ -56,10 +56,9 @@ export const updateGameStatus = (db, gameId, status, totalCards) => {
   });
 };
 
-// increment wrong guesses
 export const incrementWrongGuesses = (db, gameId) => {
   return new Promise((resolve, reject) => {
-    const sql = 'UPDATE games SET wrong_guesses = wrong_guesses + 1 WHERE id = ?';
+    const sql = 'UPDATE games SET wrong_guesses = wrong_guesses + 1, total_cards = total_cards + 1 WHERE id = ?';
     db.run(sql, [gameId], function(err) {
       if (err)
         reject(err);
@@ -69,10 +68,9 @@ export const incrementWrongGuesses = (db, gameId) => {
   });
 };
 
-// increment total cards (when player wins a card)
-export const incrementTotalCards = (db, gameId) => {
+export const incrementCorrectGuesses = (db, gameId) => {
   return new Promise((resolve, reject) => {
-    const sql = 'UPDATE games SET total_cards = total_cards + 1 WHERE id = ?';
+    const sql = 'UPDATE games SET correct_guesses = correct_guesses + 1, total_cards = total_cards + 1 WHERE id = ?';
     db.run(sql, [gameId], function(err) {
       if (err)
         reject(err);
@@ -88,7 +86,7 @@ export const getUserGameHistory = (db, userId) => {
     const sql = `
       SELECT * FROM games 
       WHERE user_id = ? AND status != 'in_progress' 
-      ORDER BY completed_at DESC
+      ORDER BY created_at DESC
     `;
     db.all(sql, [userId], (err, rows) => {
       if (err)

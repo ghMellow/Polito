@@ -1,6 +1,6 @@
 -- database: ../misfortune-game-database.sqlite
 
-INSERT INTO games (user_id, status, total_cards, wrong_guesses, correct_guesses, created_at, completed_at) VALUES
-(1, 'won', 6, 1, 5, '2025-05-25 14:30:00', '2025-05-25 15:15:00'),
-(1, 'lost', 4, 3, 1, '2025-05-26 10:20:00', '2025-05-26 10:45:00'),
-(1, 'won', 6, 0, 6, '2025-05-27 16:00:00', '2025-05-27 16:30:00');
+INSERT INTO games (user_id, status, total_cards, wrong_guesses, correct_guesses, created_at) VALUES
+(1, 'won', 6, 0, 3, '2025-05-25 14:30:00'),
+(1, 'lost', 6, 3, 0, '2025-05-25 10:20:00'),
+(1, 'won', 8, 2, 3, '2025-05-27 16:00:00');

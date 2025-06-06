@@ -51,7 +51,7 @@ export const getUserGameHistoryWithCards = (db, userId) => {
       JOIN game_cards gc ON g.id = gc.game_id
       JOIN cards c ON gc.card_id = c.id
       WHERE g.user_id = ? AND g.status != 'in_progress'
-      ORDER BY g.completed_at DESC, gc.round_number ASC
+      ORDER BY g.created_at DESC, gc.round_number ASC
     `;
     db.all(sql, [userId], (err, rows) => {
       if (err)
@@ -69,7 +69,6 @@ export const getUserGameHistoryWithCards = (db, userId) => {
               wrong_guesses: row.wrong_guesses,
               correct_guesses: row.correct_guesses,
               created_at: row.created_at,
-              completed_at: row.completed_at,
               cards: []
             });
           }
