@@ -123,12 +123,8 @@ router.post('/:id/round', [
 
     res.json({
       roundNumber: roundNumber,
-      card: {
-        id: roundCard.id,
-        name: roundCard.name,
-        image_path: roundCard.image_path
-      },
-      timeout: 30000 // 30 secondi
+      card: roundCard,
+      timeout: 30
     });
 
   } catch (error) {
