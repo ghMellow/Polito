@@ -1,10 +1,12 @@
 
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router';
+import { Card, Row, Col, Badge } from 'react-bootstrap';
 import API from '../API/API.mjs';
 
 function Game({ loggedIn, user }) {
   // Stati del gioco
-  const [gameState, setGameState] = useState('init');
+  const [gameState, setGameState] = useState('playing');
   const [currentGame, setCurrentGame] = useState(null);
   const [currentRound, setCurrentRound] = useState(1);
   const [timer, setTimer] = useState(30);
@@ -18,12 +20,7 @@ function Game({ loggedIn, user }) {
 
   // Auto-start del gioco quando il componente si monta
   useEffect(() => {
-    console.log('🎮 Game component mounted - initializing game');
     initializeGame();
-    
-    return () => {
-      console.log('🎮 Game component unmounting');
-    };
   }, []);
 
   // Timer countdown
@@ -40,12 +37,10 @@ function Game({ loggedIn, user }) {
   }, [gameState, timer]);
 
   const initializeGame = async () => {
-    try {
-      setGameState('loading');
-      
+    try {      
       // Crea una nuova partita
       const gameData = await API.createGame();
-      console.log('Game data received:', gameData); // Debug log
+      console.log('> Game data received:', gameData); 
       setCurrentGame(gameData);
       setPlayerCards(gameData.cards);
       
@@ -54,20 +49,18 @@ function Game({ loggedIn, user }) {
       
     } catch (error) {
       console.error('Errore nell\'inizializzazione del gioco:', error);
-      setGameState('init');
     }
   };
 
   const startNewRound = async (gameId = currentGame?.gameId) => {
-    try {
-      setGameState('loading');
-      
+    try {      
       // Ottieni carta per il nuovo round
       const roundData = await API.startNewRound(gameId);
-      
+      console.log('> roundData data received:', roundData);
+
       setTargetCard(roundData.card);
       setCurrentRound(roundData.roundNumber);
-      setTimer(30);
+      setTimer(roundData.timeout);
       setSelectedPosition(null);
       setGameState('playing');
       
@@ -96,15 +89,15 @@ function Game({ loggedIn, user }) {
   };
 
   const submitGuess = async (position) => {
-    try {
-      setGameState('waiting_result');
-      
+    try {      
       const result = await API.submitGuess(
         currentGame.gameId,
         targetCard.id,
         position,
         currentRound
       );
+      console.log('> Guess result received:', result);
+      
       
       // Aggiorna lo stato del gioco
       const updatedGame = { ...result.game };
@@ -145,7 +138,7 @@ function Game({ loggedIn, user }) {
 
   const handleRestartGame = () => {
     setShowResultModal(false);
-    setGameState('init');
+    setGameState('playing');
     setCurrentGame(null);
     setPlayerCards([]);
     setTargetCard(null);
@@ -157,194 +150,210 @@ function Game({ loggedIn, user }) {
     return `${seconds.toString().padStart(2, '0')}`;
   };
 
-  if (gameState === 'init' || gameState === 'loading') {
-    return <RenderLoadingState />;
-  }
-
+  // eseguita quando?
   if (gameState === 'game_over' && !showResultModal) {
     return <RenderGameOverState />;
   }
 
+return (
+  <div className="d-flex flex-column" style={{ minHeight: '100%', maxHeight: '100%' }}>
+    {/* Sezione Target Card più compatta */}
+    <div className="d-flex justify-content-center py-4">
+      <div style={{ width: '100%', maxWidth: '450px', height: 'auto' }}>
+        <RenderTargetCardSection />
+      </div>
+    </div>
+    
+    {/* Sezione Player Cards con più spazio */}
+    <div className="container-fluid px-5 py-4 pb-4 flex-grow-1 overflow-hidden">
+      <div style={{ width: '100%', height: '100%', maxHeight: '400px' }}>
+        <RenderPlayerCardsSection />
+      </div>
+    </div>
+    
+    <RenderResultModal />
+  </div>
+);
+
+function RenderTargetCardSection() {
   return (
-    <>
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '70vh' }}>
-        <div style={{ width: '100%', maxWidth: '800px' }}>
-          <RenderTargetCardSection />
-          <RenderPlayerCardsSection />
-        </div>
-      </div>
-      <RenderResultModal />
-    </>
-  );
-
-  function RenderLoadingState() {
-    return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '70vh' }}>
-        <div className="card" style={{ width: '400px' }}>
-          <div className="card-body text-center p-4">
-            <h5>{gameState === 'init' ? 'Inizializzazione...' : 'Caricamento round...'}</h5>
-            <div className="spinner-border text-primary mt-3" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  function RenderGameOverState() {
-    return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '70vh' }}>
-        <div className="card" style={{ width: '500px' }}>
-          <div className="card-body text-center p-4">
-            <h4 className="mb-3">Partita Terminata!</h4>
-            <div className="mb-3">
-              <div className="row text-center">
-                <div className="col-4">
-                  <div className="fw-bold fs-5 text-primary">{currentGame?.totalCards || 0}</div>
-                  <small className="text-muted">Carte Vinte</small>
-                </div>
-                <div className="col-4">
-                  <div className="fw-bold fs-5 text-danger">{currentGame?.wrongGuesses || 0}</div>
-                  <small className="text-muted">Errori</small>
-                </div>
-                <div className="col-4">
-                  <div className="fw-bold fs-5 text-success">{currentRound - 1}</div>
-                  <small className="text-muted">Round Giocati</small>
-                </div>
-              </div>
-            </div>
-            <div className="d-grid gap-2">
-              <button className="btn btn-primary" onClick={handleRestartGame}>
-                🔄 Nuova Partita
-              </button>
-              <a href="/" className="btn btn-outline-secondary">
-                🏠 Torna alla Home
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  function RenderTargetCardSection() {
-    return (
-      <div className="card mb-4">
-        <div className="card-body p-4">
-          <div className="row align-items-center">
-            <div className="col-12 col-md-8 text-center mb-3 mb-md-0">
-              <h5 className="mb-3">Trova questa carta tra le tue:</h5>
-              <div 
-                className="mx-auto bg-light border rounded d-flex align-items-center justify-content-center position-relative overflow-hidden"
+    <Row style={{ height: '200px' }}>
+      <Col xs={6} className="d-flex align-items-center justify-content-center">
+        <Card 
+            className="border-2 me-2" 
+            style={{ 
+              width: '140px', 
+              height: '220px',
+              flexShrink: 0
+            }}
+          >
+          <Card.Body className="d-flex flex-column p-2">                  
+            <Card.Text 
+                className="small text-center mb-2"
                 style={{ 
-                  width: '120px', 
-                  height: '180px'
+                  fontSize: '0.7rem',
+                  lineHeight: '1.1',
+                  overflow: 'hidden',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: 'vertical',
+                  minHeight: '2.5rem'
                 }}
               >
-                {targetCard?.image_path ? (
-                  <img 
-                    src={API.getImage(targetCard.image_path)} 
-                    alt={targetCard.text}
-                    className="img-fluid h-100 w-100"
-                    style={{ objectFit: 'cover' }}
-                  />
-                ) : (
-                  <div className="text-muted">Caricamento...</div>
-                )}
+                {targetCard?.text || 'Seleziona una carta!'}
+              </Card.Text>
+
+            {targetCard?.image_path && (
+              <div className="flex-grow-1 d-flex align-items-center justify-content-center">
+                <img 
+                  src={API.getImage(targetCard.image_path)}
+                  alt="Card image"
+                  className="img-fluid"
+                  style={{ 
+                    maxHeight: '120px',
+                    maxWidth: '100%',
+                    objectFit: 'contain'
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
               </div>
+            )}
+          </Card.Body>
+        </Card>
+      </Col>
+      
+      <Col xs={4} className="d-flex align-items-center justify-content-center">
+        <div className="text-center">
+          <div className="mb-1">
+            <small className="text-muted">Round {currentRound}</small>
+          </div>
+
+          <div className="d-flex align-items-center justify-content-center mb-1">
+            <div className="text-dark" style={{ fontSize: '2.5rem', fontWeight: 'bold', minWidth: '80px' }}>
+              {formatTime(timer)}
             </div>
-            <div className="col-12 col-md-4 text-center">
-              <div className="mb-2">
-                <small className="text-muted">Round {currentRound}</small>
-              </div>
-              <div className="text-dark" style={{ fontSize: '3rem', fontWeight: 'bold' }}>
-                {formatTime(timer)}
-              </div>
-              <small className="text-muted">secondi rimasti</small>
-            </div>
+            <span className="text-muted ms-2" style={{ fontSize: '2.5rem' }}>⏳</span>
           </div>
         </div>
-      </div>
-    );
-  }
+      </Col>
+    </Row>
+  );
+}
 
-  function RenderPlayerCardsSection() {
-    return (
-      <div className="card">
-        <div className="card-header d-flex justify-content-between align-items-center">
+function RenderPlayerCardsSection() {
+  return (
+    <Card className="h-100" style={{ maxWidth: '100%' }}>
+      <Card.Body className="d-flex flex-column h-100">
+        <div className="d-flex justify-content-between align-items-center mb-3">
           <h6 className="mb-0">🃏 Le tue carte - Seleziona la posizione</h6>
           <small className="text-muted">
-            Carte: {currentGame?.totalCards || 0} | Errori: {currentGame?.wrongGuesses || 0}/3
+            Errori: {currentGame?.wrongGuesses || 0}/3
           </small>
         </div>
-        <div className="card-body p-4">
-          <RenderCardsGrid />
-          <RenderSelectedPositionInfo />
-        </div>
-      </div>
-    );
-  }
-
-  function RenderCardsGrid() {
-    return (
-      <div className="d-flex justify-content-center align-items-center flex-wrap gap-2">
-        {playerCards.map((card, index) => (
-          <div key={card.id} className="d-flex align-items-center">
-            <button
-              className={`btn ${selectedPosition === index ? "btn-primary" : "btn-outline-secondary"} btn-sm me-2`}
-              onClick={() => handlePositionSelect(index)}
-              disabled={gameState !== 'playing'}
-              style={{ minWidth: '40px' }}
-            >
-              {index + 1}
-            </button>
-            
-            <div 
-              className="bg-light border rounded d-flex align-items-center justify-content-center me-2 position-relative overflow-hidden"
-              style={{ 
-                width: '60px', 
-                height: '90px'
-              }}
-            >
-              <img 
-                src={API.getImage(card.image_path)} 
-                alt={card.text}
-                className="img-fluid h-100 w-100"
-                style={{ objectFit: 'cover' }}
-              />
-            </div>
-          </div>
-        ))}
         
-        <button
-          className={`btn ${selectedPosition === playerCards.length ? "btn-primary" : "btn-outline-secondary"} btn-sm`}
-          onClick={() => handlePositionSelect(playerCards.length)}
-          disabled={gameState !== 'playing'}
-          style={{ minWidth: '40px' }}
-        >
-          {playerCards.length + 1}
-        </button>
-      </div>
-    );
-  }
+        <div className="w-100 overflow-auto flex-grow-1 d-flex align-items-center justify-content-center">
+          <RenderCardsGrid />
+        </div>
+        
+        <RenderSelectedPositionInfo />
+      </Card.Body>
+    </Card>
+  );
+}
+
+function RenderCardsGrid() {
+  return (
+    <div className="d-flex justify-content-center align-items-center flex-nowrap gap-2 overflow-auto">
+      {playerCards.map((card, index) => (
+        <div key={card.id} className="d-flex align-items-center flex-shrink-0">
+          <button
+            className={`btn ${selectedPosition === index ? "btn-primary" : "btn-outline-secondary"} btn-sm me-2`}
+            onClick={() => handlePositionSelect(index)}
+            style={{ minWidth: '40px' }}
+          >
+            {index + 1}
+          </button>
+          
+          <Card 
+            className="border-2 me-2" 
+            style={{ 
+              width: '140px', 
+              height: '220px',
+              flexShrink: 0
+            }}
+          >
+            <Card.Body className="d-flex flex-column p-2">                  
+              <Card.Text 
+                className="small text-center mb-2"
+                style={{ 
+                  fontSize: '0.7rem',
+                  lineHeight: '1.1',
+                  overflow: 'hidden',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: 'vertical',
+                  minHeight: '2.5rem'
+                }}
+              >
+                {card?.text || 'Carta'}
+              </Card.Text>
+
+              {card?.image_path && (
+                <div className="flex-grow-1 d-flex align-items-center justify-content-center mb-2">
+                  <img 
+                    src={API.getImage(card.image_path)}
+                    alt="Card image"
+                    className="img-fluid"
+                    style={{ 
+                      maxWidth: '100%',
+                      maxHeight: '120px',
+                      objectFit: 'contain'
+                    }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+              
+              <div className="mt-auto">
+                <div className="d-flex justify-content-between align-items-center">
+                  <small className="text-muted" style={{ fontSize: '0.6rem' }}>Sfortuna:</small>
+                  <Badge 
+                    bg={card.misfortune_index > 70 ? 'danger' : 
+                        card.misfortune_index > 40 ? 'warning' : 'success'}
+                    style={{ fontSize: '0.6rem' }}
+                  >
+                    {card.misfortune_index}
+                  </Badge>
+                </div>
+              </div>
+            </Card.Body>
+          </Card>
+        </div>
+      ))}
+      
+      <button
+        className={`btn ${selectedPosition === playerCards.length ? "btn-primary" : "btn-outline-secondary"} btn-sm flex-shrink-0`}
+        onClick={() => handlePositionSelect(playerCards.length)}
+        style={{ minWidth: '40px' }}
+      >
+        {playerCards.length + 1}
+      </button>
+    </div>
+  );
+}
 
   function RenderSelectedPositionInfo() {
-    if (selectedPosition === null || gameState !== 'playing') {
-      return null;
-    }
-
     return (
-      <div className="text-center mt-3">
-        <small className="text-muted">
-          Posizione selezionata: {selectedPosition + 1}
-        </small>
-        <br />
+      <div className="text-center mt-2">
         <button 
-          className="btn btn-success btn-sm mt-2"
+          className="btn btn-primary mt-4"
           onClick={() => submitGuess(selectedPosition)}
         >
-          ✅ Conferma Scelta
+          Conferma Scelta
         </button>
       </div>
     );
@@ -395,7 +404,6 @@ function Game({ loggedIn, user }) {
 
     return (
       <>
-        <div style={{ fontSize: '4rem' }} className="mb-3">😔</div>
         <h4 className="text-danger mb-3">Sbagliato!</h4>
         <p className="text-muted">
           La posizione corretta era: {(lastGuessResult?.correctPosition || 0) + 1}
@@ -403,7 +411,6 @@ function Game({ loggedIn, user }) {
             ` (hai scelto: ${lastGuessResult.selectedPosition + 1})`
           }
         </p>
-        <p className="text-muted">{lastGuessResult?.message}</p>
       </>
     );
   }
@@ -416,9 +423,9 @@ function Game({ loggedIn, user }) {
             <button className="btn btn-primary" onClick={handleRestartGame}>
               🔄 Nuova Partita
             </button>
-            <a href="/" className="btn btn-outline-secondary">
+            <Link to="/" className="btn btn-outline-secondary">
               🏠 Torna alla Home
-            </a>
+            </Link>
           </div>
         </div>
       );
@@ -432,6 +439,42 @@ function Game({ loggedIn, user }) {
         >
           🚀 Prossimo Round
         </button>
+      </div>
+    );
+  }
+
+  function RenderGameOverState() {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '70vh' }}>
+        <div className="card" style={{ width: '500px' }}>
+          <div className="card-body text-center p-4">
+            <h4 className="mb-3">Partita Terminata!</h4>
+            <div className="mb-3">
+              <div className="row text-center">
+                <div className="col-4">
+                  <div className="fw-bold fs-5 text-primary">{currentGame?.totalCards || 0}</div>
+                  <small className="text-muted">Carte Vinte</small>
+                </div>
+                <div className="col-4">
+                  <div className="fw-bold fs-5 text-danger">{currentGame?.wrongGuesses || 0}</div>
+                  <small className="text-muted">Errori</small>
+                </div>
+                <div className="col-4">
+                  <div className="fw-bold fs-5 text-success">{currentRound - 1}</div>
+                  <small className="text-muted">Round Giocati</small>
+                </div>
+              </div>
+            </div>
+            <div className="d-grid gap-2">
+              <button className="btn btn-primary" onClick={handleRestartGame}>
+                🔄 Nuova Partita
+              </button>
+              <a href="/" className="btn btn-outline-secondary">
+                🏠 Torna alla Home
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
