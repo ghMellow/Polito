@@ -55,7 +55,7 @@ function GamesHistory(props) {
                 style={{ width: '120px', height: '120px' }}
               >
                 <JdenticonAvatar
-                  value={props.user.username || Math.random().toString(36).substring(2, 15)}
+                  value={props.user?.username || Math.random().toString(36).substring(2, 15)}
                   circular={true}
                 />
               </div>

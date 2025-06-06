@@ -9,7 +9,7 @@ function Rules() {
                     <Card.Body>
                         <Card.Title className="text-center mb-4">Regole del Gioco 🎲</Card.Title>
                         <Card.Text>
-                            Benvenuto al <strong>"Gioco della Sfortuna"</strong>! 😱 In questa versione single player ispirata a "Stuff Happens", sfiderai il computer cercando di collezionare 6 carte che rappresentano situazioni orribili della vita... davvero orribili! 🫣
+                            Benvenuto al <strong>"Gioco della Sfortuna a tema Università"</strong>! 😱 In questa versione single player ispirata a "Stuff Happens", sfiderai il computer cercando di collezionare 6 carte che rappresentano situazioni orribili della vita universitaria... davvero orribili! 🫣
                         </Card.Text>
                         <Card.Text>
                             🔹 Inizia la partita con 3 carte casuali, ognuna con:
