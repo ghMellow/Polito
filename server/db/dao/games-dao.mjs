@@ -1,8 +1,8 @@
 // create a new game
-export const createGame = (db, userId = null) => {
+export const createGame = (db, userId, created_at) => {
   return new Promise((resolve, reject) => {
-    const sql = 'INSERT INTO games (user_id, status, total_cards, wrong_guesses) VALUES (?, ?, ?, ?)';
-    db.run(sql, [userId, 'in_progress', 3, 0], function(err) {
+    const sql = 'INSERT INTO games (user_id, status, total_cards, wrong_guesses, correct_guesses, created_at) VALUES (?, ?, ?, ?, ?, ?)';
+    db.run(sql, [userId, 'in_progress', 3, 0, 0, created_at], function(err) {
       if (err)
         reject(err);
       else

@@ -39,7 +39,11 @@ router.post('/', async (req, res) => {
     }
 
     // Crea nuova partita
-    const gameId = await createGame(db, userId);
+    const created_at = dayjs().format();
+        console.log('new game created_at:', created_at);
+
+    const gameId = await createGame(db, userId, created_at);
+        console.log('new gat:', created_at);
 
     // Genera 3 carte iniziali casuali
     const limit = 3;
@@ -47,12 +51,16 @@ router.post('/', async (req, res) => {
     const roundNumber = null;
     const won = true;
     const initialCard = true;
+    console.log('new game created_at:', created_at);
+    
+
     for (const card of initialCards) {
-      await addRoundCard(db, gameId, card.id, roundNumber, won, initialCard);
+      await addRoundCard(db, gameId, card.id, roundNumber, won, initialCard, created_at);
     }
     
     // Recupera le carte con tutti i dettagli per inviarle al client
     const gameCards = await getGameWonCards(db, gameId);
+console.log('Game cards after creation:');
 
     res.status(201).json({
       gameId: gameId,
