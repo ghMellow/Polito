@@ -9,7 +9,7 @@ import {
   getUserGamesInProgress,
   updateGameStatus,
   incrementWrongGuesses,
-  incrementTotalCards,
+  incrementCorrectGuesses,
   deleteGame
 } from '../db/dao/games-dao.mjs';
 import {
@@ -57,8 +57,9 @@ router.post('/', async (req, res) => {
     res.status(201).json({
       gameId: gameId,
       status: 'in_progress',
-      totalCards: 3,
-      wrongGuesses: 0,
+      total_cards: 3,
+      correct_guesses: 0,
+      wrong_guesses: 0,
       cards: gameCards
     });
 
@@ -87,12 +88,9 @@ router.post('/:id/round', [
     if (game.error) {
       return res.status(404).json(game);
     }
-
     if (game.status !== 'in_progress') {
       return res.status(400).json({ error: 'Game is not in progress' });
     }
-
-    // Verifica che la partita appartenga all'utente (se autenticato)
     if (req.isAuthenticated() && game.user_id !== req.user.id) {
       return res.status(403).json({ error: 'Access denied to this game' });
     }
@@ -156,12 +154,9 @@ router.post('/:id/guess', [
     if (game.error) {
       return res.status(404).json(game);
     }
-
     if (game.status !== 'in_progress') {
       return res.status(400).json({ error: 'Game is not in progress' });
     }
-
-    // Verifica che la partita appartenga all'utente (se autenticato)
     if (req.isAuthenticated() && game.user_id !== req.user.id) {
       return res.status(403).json({ error: 'Access denied to this game' });
     }
@@ -190,7 +185,7 @@ router.post('/:id/guess', [
       // Verifica sconfitta (3 errori)
       if (game.wrong_guesses + 1 >= 3) {
         gameStatus = 'lost';
-        await updateGameStatus(db, gameId, 'lost', game.total_cards);
+        await updateGameStatus(db, gameId, gameStatus, game.total_cards);
         message = 'Game over! You made too many wrong guesses.';
       }
 
@@ -205,8 +200,9 @@ router.post('/:id/guess', [
         game: {
           id: updatedGame.id,
           status: gameStatus,
-          totalCards: updatedGame.total_cards,
-          wrongGuesses: updatedGame.wrong_guesses,
+          total_cards: updatedGame.total_cards,
+          correct_guesses: updatedGame.correct_guesses,
+          wrong_guesses: updatedGame.wrong_guesses,
           cards: updatedCards
         }
       });
@@ -229,11 +225,12 @@ router.post('/:id/guess', [
 
     if (isCorrect) {
       // Carta vinta
-      await incrementTotalCards(db, gameId);
+      await incrementCorrectGuesses(db, gameId);
       message = 'Congratulations! You guessed correctly!';
 
       // Verifica vittoria (6 carte totali)
-      if (game.total_cards + 1 >= 6) {
+      console.log('Total cards after guess:', ownedCards.length);
+      if ((ownedCards.length +1) >= 6) {
         gameStatus = 'won';
         await updateGameStatus(db, gameId, 'won', 6);
         message = 'You won the game! Congratulations!';
@@ -264,8 +261,9 @@ router.post('/:id/guess', [
       game: {
         id: updatedGame.id,
         status: gameStatus,
-        totalCards: updatedGame.total_cards,
-        wrongGuesses: updatedGame.wrong_guesses,
+        total_cards: updatedGame.total_cards,
+        correct_guesses: updatedGame.correct_guesses,
+        wrong_guesses: updatedGame.wrong_guesses,
         cards: updatedCards
       }
     });
