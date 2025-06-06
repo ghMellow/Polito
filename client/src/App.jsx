@@ -9,6 +9,7 @@ import Rules from "./components/Rules";
 import Game from "./components/Game"; 
 import GamesHistory from "./components/GamesHistory";
 import GameDetails from "./components/GameDetails"; 
+import GameSummary from "./components/GameSummary";
 import { LoginForm } from "./components/AuthComponents";
 import API from "./API/API.mjs";
 
@@ -56,6 +57,7 @@ function App() {
         <Route path="/game" element={<Game loggedIn={loggedIn} user={user}/>} />
         <Route path="/history" element={<GamesHistory loggedIn={loggedIn} user={user} handleLogout={handleLogout} />} />
         <Route path="/history/:gameId" element={<GameDetails loggedIn={loggedIn} user={user} handleLogout={handleLogout} />} />
+        <Route path="/summary" element={<GameSummary loggedIn={loggedIn} user={user} />} />
         <Route path="*" element={ <NotFound /> } />
       </Route>
     </Routes>

@@ -1,10 +1,20 @@
-
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { Card, Row, Col, Badge } from 'react-bootstrap';
 import API from '../API/API.mjs';
 
 function Game({ loggedIn, user }) {
+  const navigate = useNavigate();
+
+  const goToSummary = () => {
+    navigate('/summary', { 
+      state: { 
+        gameData: currentGame, 
+        playerCards: playerCards 
+      } 
+    });
+  };
+
   // Stati del gioco
   const [gameState, setGameState] = useState('playing');
   const [currentGame, setCurrentGame] = useState(null);
@@ -159,20 +169,17 @@ function Game({ loggedIn, user }) {
 
 return (
   <div className="d-flex flex-column" style={{ minHeight: '100%', maxHeight: '100%' }}>
-    {/* Sezione Target Card più compatta */}
     <div className="d-flex justify-content-center py-4">
       <div style={{ width: '100%', maxWidth: '450px', height: 'auto' }}>
         <RenderTargetCardSection />
       </div>
     </div>
-    
-    {/* Sezione Player Cards con più spazio */}
     <div className="container-fluid px-5 py-4 pb-4 flex-grow-1 overflow-hidden">
       <div style={{ width: '100%', height: '100%', maxHeight: '400px' }}>
         <RenderPlayerCardsSection />
       </div>
     </div>
-    
+
     <RenderResultModal />
   </div>
 );
@@ -249,9 +256,9 @@ function RenderPlayerCardsSection() {
     <Card className="h-100" style={{ maxWidth: '100%' }}>
       <Card.Body className="d-flex flex-column h-100">
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h6 className="mb-0">🃏 Le tue carte - Seleziona la posizione</h6>
+          <h6 className="mb-0">🃏 Le tue carte - Indovina la posizione!</h6>
           <small className="text-muted">
-            Errori: {currentGame?.wrongGuesses || 0}/3
+            Errori: {currentGame?.wrong_guesses || 0}/3
           </small>
         </div>
         
@@ -259,7 +266,15 @@ function RenderPlayerCardsSection() {
           <RenderCardsGrid />
         </div>
         
-        <RenderSelectedPositionInfo />
+        <div className="text-center mt-2">
+          <button 
+            className="btn btn-primary mt-4"
+            disabled={selectedPosition === null || gameState !== 'playing'}
+            onClick={() => submitGuess(selectedPosition)}
+          >
+            Conferma Scelta
+          </button>
+        </div>  
       </Card.Body>
     </Card>
   );
@@ -348,21 +363,7 @@ function RenderCardsGrid() {
   );
 }
 
-  function RenderSelectedPositionInfo() {
-    return (
-      <div className="text-center mt-2">
-        <button 
-          className="btn btn-primary mt-4"
-          disabled={selectedPosition === null || gameState !== 'playing'}
-          onClick={() => submitGuess(selectedPosition)}
-        >
-          Conferma Scelta
-        </button>
-      </div>
-    );
-  }
-
-  function RenderResultModal() {
+function RenderResultModal() {
     if (!showResultModal) {
       return null;
     }
@@ -385,15 +386,6 @@ function RenderCardsGrid() {
   }
 
   function RenderResultContent() {
-    if (lastGuessResult?.timeExpired) {
-      return (
-        <>
-          <div style={{ fontSize: '4rem' }} className="mb-3">⏰</div>
-          <h4 className="text-warning mb-3">Tempo Scaduto!</h4>
-          <p className="text-muted">{lastGuessResult.message}</p>
-        </>
-      );
-    }
 
     if (lastGuessResult?.isCorrect) {
       return (
@@ -415,16 +407,28 @@ function RenderCardsGrid() {
   }
 
   function RenderResultActions() {
-    if (lastGuessResult?.isGameOver) {
+    if (!loggedIn) {
+      return (
+        <div className="mt-4">
+          <p className="text-muted mb-3">
+            Iscriviti per giocare partite complete e salvare i tuoi progressi!
+          </p>
+          <div className="d-grid gap-2">
+            <button className="btn btn-primary" onClick={goToSummary}>
+              📊 Vai al Riepilogo
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (currentGame?.status === 'won' || lastGuessResult?.isGameOver) {
       return (
         <div className="mt-4">
           <div className="d-grid gap-2">
-            <button className="btn btn-primary" onClick={handleRestartGame}>
-              🔄 Nuova Partita
+            <button className="btn btn-primary" onClick={goToSummary}>
+              📊 Vai al Riepilogo
             </button>
-            <Link to="/" className="btn btn-outline-secondary">
-              🏠 Torna alla Home
-            </Link>
           </div>
         </div>
       );
@@ -432,10 +436,7 @@ function RenderCardsGrid() {
 
     return (
       <div className="mt-4">
-        <button 
-          className="btn btn-primary"
-          onClick={handleNextAction}
-        >
+        <button className="btn btn-primary" onClick={handleNextAction}>
           🚀 Prossimo Round
         </button>
       </div>
@@ -451,11 +452,15 @@ function RenderCardsGrid() {
             <div className="mb-3">
               <div className="row text-center">
                 <div className="col-4">
-                  <div className="fw-bold fs-5 text-primary">{currentGame?.totalCards || 0}</div>
+                  <div className="fw-bold fs-5 text-primary">{currentGame?.total_cards || 0}</div>
+                  <small className="text-muted">Carte Totali</small>
+                </div>
+                <div className="col-4">
+                  <div className="fw-bold fs-5 text-primary">{currentGame?.correct_guesses || 0}</div>
                   <small className="text-muted">Carte Vinte</small>
                 </div>
                 <div className="col-4">
-                  <div className="fw-bold fs-5 text-danger">{currentGame?.wrongGuesses || 0}</div>
+                  <div className="fw-bold fs-5 text-danger">{currentGame?.wrong_guesses || 0}</div>
                   <small className="text-muted">Errori</small>
                 </div>
                 <div className="col-4">
