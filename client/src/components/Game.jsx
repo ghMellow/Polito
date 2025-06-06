@@ -162,11 +162,6 @@ function Game({ loggedIn, user }) {
     return `${seconds.toString().padStart(2, '0')}`;
   };
 
-  // eseguita quando?
-  if (gameState === 'game_over' && !showResultModal) {
-    return <RenderGameOverState />;
-  }
-
 return (
   <div className="d-flex flex-column" style={{ minHeight: '100%', maxHeight: '100%' }}>
     <div className="d-flex justify-content-center py-4">
@@ -443,45 +438,6 @@ function RenderResultModal() {
     );
   }
 
-  function RenderGameOverState() {
-    return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '70vh' }}>
-        <div className="card" style={{ width: '500px' }}>
-          <div className="card-body text-center p-4">
-            <h4 className="mb-3">Partita Terminata!</h4>
-            <div className="mb-3">
-              <div className="row text-center">
-                <div className="col-4">
-                  <div className="fw-bold fs-5 text-primary">{currentGame?.total_cards || 0}</div>
-                  <small className="text-muted">Carte Totali</small>
-                </div>
-                <div className="col-4">
-                  <div className="fw-bold fs-5 text-primary">{currentGame?.correct_guesses || 0}</div>
-                  <small className="text-muted">Carte Vinte</small>
-                </div>
-                <div className="col-4">
-                  <div className="fw-bold fs-5 text-danger">{currentGame?.wrong_guesses || 0}</div>
-                  <small className="text-muted">Errori</small>
-                </div>
-                <div className="col-4">
-                  <div className="fw-bold fs-5 text-success">{currentRound - 1}</div>
-                  <small className="text-muted">Round Giocati</small>
-                </div>
-              </div>
-            </div>
-            <div className="d-grid gap-2">
-              <button className="btn btn-primary" onClick={handleRestartGame}>
-                🔄 Nuova Partita
-              </button>
-              <a href="/" className="btn btn-outline-secondary">
-                🏠 Torna alla Home
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 }
 
 export default Game;

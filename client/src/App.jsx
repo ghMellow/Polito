@@ -22,9 +22,14 @@ function App() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const user = await API.getUserInfo(); // we have the user info here
-      setLoggedIn(true);
-      setUser(user);
+      try {
+        const user = await API.getUserInfo();
+        setLoggedIn(true);
+        setUser(user);
+      } catch (error) {
+        setLoggedIn(false);
+        setUser(null);
+      }
     };
     checkAuth();
   }, []);
