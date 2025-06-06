@@ -114,15 +114,8 @@ function GamesHistory(props) {
                       {getStatusBadge(game.status)}
                     </div>
                     <small className="text-muted">
-                      Iniziata: {formatDate(game.created_at)}
+                      Data: {formatDate(game.created_at)}
                     </small>
-                    {game.completed_at && (
-                      <><br />
-                        <small className="text-muted">
-                          Completata: {formatDate(game.completed_at)}
-                        </small>
-                      </>
-                    )}
                   </div>
                   <div className="mt-3 d-flex justify-content-between align-items-center">
                     <Link

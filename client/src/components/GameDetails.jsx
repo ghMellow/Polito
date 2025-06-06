@@ -126,15 +126,9 @@ function GameDetails(props) {
         <Card.Body>
           <Row className="mb-3">
             <Col md={3}>
-              <small className="text-muted d-block">Iniziata:</small>
+              <small className="text-muted d-block">Data:</small>
               <strong>{formatDate(gameData.created_at)}</strong>
             </Col>
-            {gameData.completed_at && (
-              <Col md={3}>
-                <small className="text-muted d-block">Completata:</small>
-                <strong>{formatDate(gameData.completed_at)}</strong>
-              </Col>
-            )}
           </Row>
           
           <Row className="text-center">
