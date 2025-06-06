@@ -1,7 +1,7 @@
-export const addRoundCard = (db, gameId, cardId, roundNumber, won, initialCard) => {
+export const addRoundCard = (db, gameId, cardId, roundNumber, won, initialCard, created_at) => {
   return new Promise((resolve, reject) => {
-    const sql = 'INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUES (?, ?, ?, ?, ?)';
-    db.run(sql, [gameId, cardId, roundNumber, won, initialCard], function(err) {
+    const sql = 'INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card, created_at) VALUES (?, ?, ?, ?, ?, ?)';
+    db.run(sql, [gameId, cardId, roundNumber, won, initialCard, created_at], function(err) {
       if (err)
         reject(err);
       else
