@@ -90,6 +90,8 @@ function Game({ loggedIn, user }) {
 
   const submitGuess = async (position) => {
     try {      
+      setGameState('paused');
+
       const result = await API.submitGuess(
         currentGame.gameId,
         targetCard.id,
@@ -193,7 +195,7 @@ function RenderTargetCardSection() {
                 style={{ 
                   fontSize: '0.7rem',
                   lineHeight: '1.1',
-                  overflow: 'hidden',
+                  overflow: 'auto',
                   display: '-webkit-box',
                   WebkitLineClamp: 3,
                   WebkitBoxOrient: 'vertical',
@@ -290,7 +292,7 @@ function RenderCardsGrid() {
                 style={{ 
                   fontSize: '0.7rem',
                   lineHeight: '1.1',
-                  overflow: 'hidden',
+                  overflow: 'auto',
                   display: '-webkit-box',
                   WebkitLineClamp: 3,
                   WebkitBoxOrient: 'vertical',
@@ -351,6 +353,7 @@ function RenderCardsGrid() {
       <div className="text-center mt-2">
         <button 
           className="btn btn-primary mt-4"
+          disabled={selectedPosition === null || gameState !== 'playing'}
           onClick={() => submitGuess(selectedPosition)}
         >
           Conferma Scelta
@@ -397,7 +400,6 @@ function RenderCardsGrid() {
         <>
           <div style={{ fontSize: '4rem' }} className="mb-3">🎉</div>
           <h4 className="text-success mb-3">Indovinato!</h4>
-          <p className="text-muted">{lastGuessResult.message}</p>
         </>
       );
     }
@@ -407,9 +409,6 @@ function RenderCardsGrid() {
         <h4 className="text-danger mb-3">Sbagliato!</h4>
         <p className="text-muted">
           La posizione corretta era: {(lastGuessResult?.correctPosition || 0) + 1}
-          {lastGuessResult?.selectedPosition >= 0 && 
-            ` (hai scelto: ${lastGuessResult.selectedPosition + 1})`
-          }
         </p>
       </>
     );
