@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Card, Row, Col, Badge } from 'react-bootstrap';
 import API from '../API/API.mjs';
 
-function Game({ loggedIn, user }) {
+function Game({ loggedIn }) {
   const navigate = useNavigate();
 
   const goToSummary = () => {
@@ -25,8 +25,8 @@ function Game({ loggedIn, user }) {
   const [selectedPosition, setSelectedPosition] = useState(null);
   
   // Stati del popup risultato
-  const [showResultModal, setShowResultModal] = useState(false);
-  const [lastGuessResult, setLastGuessResult] = useState(null);
+  const [showResultRound, setshowResultRound] = useState(false);
+  const [lastRoundGuessResult, setlastRoundGuessResult] = useState(null);
 
   // Auto-start del gioco quando il componente si monta
   useEffect(() => {
@@ -78,12 +78,12 @@ function Game({ loggedIn, user }) {
       console.error('Errore nel caricamento del round:', error);
       if (error.message.includes('Demo game allows only one round')) {
         setGameState('game_over');
-        setLastGuessResult({
+        setlastRoundGuessResult({
           isGameOver: true,
           message: 'Demo terminata! Registrati per giocare partite complete.',
           finalGame: currentGame
         });
-        setShowResultModal(true);
+        setshowResultRound(true);
       }
     }
   };
@@ -120,7 +120,7 @@ function Game({ loggedIn, user }) {
       setCurrentGame(updatedGame);
       setPlayerCards(result.game.cards);
       
-      setLastGuessResult({
+      setlastRoundGuessResult({
         isCorrect: result.correct,
         correctPosition: result.correctPosition,
         selectedPosition: position,
@@ -130,7 +130,7 @@ function Game({ loggedIn, user }) {
         finalGame: result.game
       });
       
-      setShowResultModal(true);
+      setshowResultRound(true);
       
     } catch (error) {
       console.error('Errore nel submit della guess:', error);
@@ -139,9 +139,9 @@ function Game({ loggedIn, user }) {
   };
 
   const handleNextAction = () => {
-    setShowResultModal(false);
+    setshowResultRound(false);
     
-    if (lastGuessResult.isGameOver) {
+    if (lastRoundGuessResult.isGameOver) {
       setGameState('game_over');
     } else {
       startNewRound(currentGame?.gameId);
@@ -149,7 +149,7 @@ function Game({ loggedIn, user }) {
   };
 
   const handleRestartGame = () => {
-    setShowResultModal(false);
+    setshowResultRound(false);
     setGameState('playing');
     setCurrentGame(null);
     setPlayerCards([]);
@@ -166,20 +166,41 @@ return (
   <div className="d-flex flex-column" style={{ minHeight: '100%', maxHeight: '100%' }}>
     <div className="d-flex justify-content-center py-4">
       <div style={{ width: '100%', maxWidth: '450px', height: 'auto' }}>
-        <RenderTargetCardSection />
+        <RenderTargetCardSection 
+          targetCard={targetCard}
+          currentRound={currentRound}
+          timer={timer}
+          formatTime={formatTime}
+        />
       </div>
     </div>
     <div className="container-fluid px-5 py-4 pb-4 flex-grow-1 overflow-hidden">
       <div style={{ width: '100%', height: '100%', maxHeight: '400px' }}>
-        <RenderPlayerCardsSection />
+        <RenderPlayerCardsSection 
+          currentGame={currentGame}
+          playerCards={playerCards}
+          selectedPosition={selectedPosition}
+          gameState={gameState}
+          handlePositionSelect={handlePositionSelect}
+          submitGuess={submitGuess}
+        />
       </div>
     </div>
 
-    <RenderResultModal />
+    <RenderResultRound 
+      showResultRound={showResultRound}
+      lastRoundGuessResult={lastRoundGuessResult}
+      loggedIn={loggedIn}
+      currentGame={currentGame}
+      goToSummary={goToSummary}
+      handleNextAction={handleNextAction}
+    />
   </div>
 );
+}
 
-function RenderTargetCardSection() {
+// Componente memoizzato per la sezione della carta target
+const RenderTargetCardSection = memo(({ targetCard, currentRound, timer, formatTime }) => {
   return (
     <Row style={{ height: '200px' }}>
       <Col xs={6} className="d-flex align-items-center justify-content-center">
@@ -244,9 +265,17 @@ function RenderTargetCardSection() {
       </Col>
     </Row>
   );
-}
+});
 
-function RenderPlayerCardsSection() {
+// Componente memoizzato per la sezione delle carte del giocatore
+const RenderPlayerCardsSection = memo(({ 
+  currentGame, 
+  playerCards, 
+  selectedPosition, 
+  gameState, 
+  handlePositionSelect, 
+  submitGuess 
+}) => {
   return (
     <Card className="h-100" style={{ maxWidth: '100%' }}>
       <Card.Body className="d-flex flex-column h-100">
@@ -258,7 +287,11 @@ function RenderPlayerCardsSection() {
         </div>
         
         <div className="w-100 overflow-auto flex-grow-1 d-flex align-items-center justify-content-center">
-          <RenderCardsGrid />
+          <RenderCardsGrid 
+            playerCards={playerCards}
+            selectedPosition={selectedPosition}
+            handlePositionSelect={handlePositionSelect}
+          />
         </div>
         
         <div className="text-center mt-2">
@@ -273,9 +306,10 @@ function RenderPlayerCardsSection() {
       </Card.Body>
     </Card>
   );
-}
+});
 
-function RenderCardsGrid() {
+// Componente memoizzato per la griglia delle carte
+const RenderCardsGrid = memo(({ playerCards, selectedPosition, handlePositionSelect }) => {
   return (
     <div className="d-flex justify-content-center align-items-center flex-nowrap gap-2 overflow-auto">
       {playerCards.map((card, index) => (
@@ -356,88 +390,107 @@ function RenderCardsGrid() {
       </button>
     </div>
   );
-}
+});
 
-function RenderResultModal() {
-    if (!showResultModal) {
-      return null;
-    }
+// Componente memoizzato per il modal dei risultati
+const RenderResultRound = memo(({ 
+  showResultRound, 
+  lastRoundGuessResult, 
+  loggedIn, 
+  currentGame, 
+  goToSummary, 
+  handleNextAction 
+}) => {
+  if (!showResultRound) {
+    return null;
+  }
 
-    return (
-      <>
-        <div className="modal-backdrop show"></div>
-        <div className="modal show d-block" tabIndex="-1">
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-body text-center p-4">
-                <RenderResultContent />
-                <RenderResultActions />
-              </div>
+  return (
+    <>
+      <div className="modal-backdrop show"></div>
+      <div className="modal show d-block" tabIndex="-1">
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-body text-center p-4">
+              <RenderResultContent lastRoundGuessResult={lastRoundGuessResult} />
+              <RenderResultActions 
+                loggedIn={loggedIn}
+                currentGame={currentGame}
+                lastRoundGuessResult={lastRoundGuessResult}
+                goToSummary={goToSummary}
+                handleNextAction={handleNextAction}
+              />
             </div>
           </div>
         </div>
-      </>
-    );
-  }
+      </div>
+    </>
+  );
+});
 
-  function RenderResultContent() {
-
-    if (lastGuessResult?.isCorrect) {
-      return (
-        <>
-          <div style={{ fontSize: '4rem' }} className="mb-3">🎉</div>
-          <h4 className="text-success mb-3">Indovinato!</h4>
-        </>
-      );
-    }
-
+// Componente memoizzato per il contenuto del risultato
+const RenderResultContent = memo(({ lastRoundGuessResult }) => {
+  if (lastRoundGuessResult?.isCorrect) {
     return (
       <>
-        <h4 className="text-danger mb-3">Sbagliato!</h4>
-        <p className="text-muted">
-          La posizione corretta era: {(lastGuessResult?.correctPosition || 0) + 1}
-        </p>
+        <div style={{ fontSize: '4rem' }} className="mb-3">🎉</div>
+        <h4 className="text-success mb-3">Indovinato!</h4>
       </>
     );
   }
 
-  function RenderResultActions() {
-    if (!loggedIn) {
-      return (
-        <div className="mt-4">
-          <p className="text-muted mb-3">
-            Iscriviti per giocare partite complete e salvare i tuoi progressi!
-          </p>
-          <div className="d-grid gap-2">
-            <button className="btn btn-primary" onClick={goToSummary}>
-              📊 Vai al Riepilogo
-            </button>
-          </div>
-        </div>
-      );
-    }
+  return (
+    <>
+      <h4 className="text-danger mb-3">Sbagliato!</h4>
+      <p className="text-muted">
+        La posizione corretta era: {(lastRoundGuessResult?.correctPosition || 0) + 1}
+      </p>
+    </>
+  );
+});
 
-    if (currentGame?.status === 'won' || lastGuessResult?.isGameOver) {
-      return (
-        <div className="mt-4">
-          <div className="d-grid gap-2">
-            <button className="btn btn-primary" onClick={goToSummary}>
-              📊 Vai al Riepilogo
-            </button>
-          </div>
-        </div>
-      );
-    }
-
+// Componente memoizzato per le azioni del risultato
+const RenderResultActions = memo(({ 
+  loggedIn, 
+  currentGame, 
+  lastRoundGuessResult, 
+  goToSummary, 
+  handleNextAction 
+}) => {
+  if (!loggedIn) {
     return (
       <div className="mt-4">
-        <button className="btn btn-primary" onClick={handleNextAction}>
-          🚀 Prossimo Round
-        </button>
+        <p className="text-muted mb-3">
+          Iscriviti per giocare partite complete e salvare i tuoi progressi!
+        </p>
+        <div className="d-grid gap-2">
+          <button className="btn btn-primary" onClick={goToSummary}>
+            📊 Vai al Riepilogo
+          </button>
+        </div>
       </div>
     );
   }
 
-}
+  if (currentGame?.status === 'won' || lastRoundGuessResult?.isGameOver) {
+    return (
+      <div className="mt-4">
+        <div className="d-grid gap-2">
+          <button className="btn btn-primary" onClick={goToSummary}>
+            📊 Vai al Riepilogo
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4">
+      <button className="btn btn-primary" onClick={handleNextAction}>
+        🚀 Prossimo Round
+      </button>
+    </div>
+  );
+});
 
 export default Game;
