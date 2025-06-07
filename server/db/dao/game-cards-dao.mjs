@@ -57,7 +57,6 @@ export const getUserGameHistoryWithCards = (db, userId) => {
       if (err)
         reject(err);
       else {
-        // Raggruppa i risultati per partita
         const gamesMap = new Map();
         
         rows.forEach(row => {
