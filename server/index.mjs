@@ -1,4 +1,3 @@
-// imports
 import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
@@ -8,7 +7,6 @@ import session from 'express-session';
 import { getUser } from './db/dao/users-dao.mjs';
 import { dbPromise } from './db/db.mjs';
 
-// Routes imports
 import authRoutes from './routes/auth.mjs';
 import gameRoutes from './routes/games.mjs';
 import userRoutes from './routes/users.mjs';
@@ -68,19 +66,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/games', gameRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/cards', cardRoutes);
-
-// 404 handler per API non trovate
 app.use('/api/*', (req, res) => {
   res.status(404).json({ error: 'API endpoint not found' });
-});
-
-// Error handler globale
-app.use((err, req, res, next) => {
-  console.error('Errore non gestito:', err);
-  res.status(500).json({ 
-    error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
-  });
 });
 
 // activate the server

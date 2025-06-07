@@ -1,7 +1,7 @@
 import express from 'express';
 import { isLoggedIn } from './auth-middleware.mjs';
 import { dbPromise } from '../db/db.mjs';
-import { getUserGameHistoryWithCards } from '../db/dao/game-cards-dao.mjs';
+import { getUserProfile } from '../db/dao/game-cards-dao.mjs';
 
 // Route /api/users/
 const router = express.Router();
@@ -11,7 +11,7 @@ router.get('/profile', isLoggedIn, async (req, res) => {
     const db = await dbPromise;
     const user = req.user;
     
-    const gameHistory = await getUserGameHistoryWithCards(db, user.id);
+    const gameHistory = await getUserProfile(db, user.id);
     
     res.json({
       history: gameHistory
