@@ -1,5 +1,5 @@
 import { useState, useEffect, memo } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { Card, Row, Col, Badge } from 'react-bootstrap';
 import API from '../API/API.mjs';
 
