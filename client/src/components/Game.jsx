@@ -2,18 +2,11 @@ import { useState, useEffect, memo } from 'react';
 import { useNavigate } from 'react-router';
 import { Card, Row, Col, Badge } from 'react-bootstrap';
 import API from '../API/API.mjs';
+import GameGuessModel from '../models/GameGuessModel.mjs';
 
 function Game({ loggedIn }) {
   const navigate = useNavigate();
-
-  const goToSummary = () => {
-    navigate('/summary', { 
-      state: { 
-        gameData: currentGame, 
-        playerCards: playerCards 
-      } 
-    });
-  };
+  const gameGuessModel = new GameGuessModel();
 
   // Stati del gioco
   const [gameState, setGameState] = useState('playing');
@@ -32,6 +25,15 @@ function Game({ loggedIn }) {
   useEffect(() => {
     initializeGame();
   }, []);
+
+  const goToSummary = () => {
+    navigate('/summary', { 
+      state: { 
+        gameData: currentGame, 
+        playerCards: playerCards 
+      }
+    });
+  };
 
   // Timer countdown
   useEffect(() => {
@@ -102,16 +104,24 @@ function Game({ loggedIn }) {
     try {      
       setGameState('paused');
 
-      const result = await API.submitGuess(
-        currentGame.gameId,
+      // Serializza e valida i dati prima dell'invio
+      const requestData = gameGuessModel.serializeGuessRequest(
         targetCard.id,
         position,
         currentRound
       );
-      console.log('> Guess result received:', result);
       
+      console.log('> Sending validated guess data:', requestData);
+
+      const result = await API.submitGuess(
+        currentGame.gameId,
+        requestData.cardId,
+        requestData.position,
+        requestData.roundNumber
+      );
       
-      // Aggiorna lo stato del gioco
+      console.log('> Raw server response:', result);
+      
       const updatedGame = { ...result.game };
       // Assicurati che abbia sempre gameId per consistenza
       if (result.game.id && !result.game.gameId) {
@@ -146,16 +156,6 @@ function Game({ loggedIn }) {
     } else {
       startNewRound(currentGame?.gameId);
     }
-  };
-
-  const handleRestartGame = () => {
-    setshowResultRound(false);
-    setGameState('playing');
-    setCurrentGame(null);
-    setPlayerCards([]);
-    setTargetCard(null);
-    setCurrentRound(1);
-    initializeGame();
   };
 
   const formatTime = (seconds) => {
