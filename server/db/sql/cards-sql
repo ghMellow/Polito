@@ -7,16 +7,15 @@ INSERT INTO cards (text, image_path, misfortune_index, category) VALUES
 ("La stampante si inceppa 5 minuti prima della consegna", "1.png", 12.0, "vita_universitaria"),
 ("Piove il giorno della laurea e non hai l ombrello", "1.png", 15.5, "vita_universitaria"),
 ("Il tuo gruppo di studio si scioglie a una settimana dall esame", "1.png", 18.0, "vita_universitaria"),
-
+("Il professore non accetta la tua tesi perché è in un formato sbagliato", "1.png", 20.5, "vita_universitaria"),
 ("Il professore anticipa l esame di una settimana via email", "1.png", 22.5, "vita_universitaria"),
 ("Perdi tutti gli appunti del semestre sul bus", "1.png", 26.0, "vita_universitaria"),
 ("Il WiFi dell università non funziona durante l esame online", "1.png", 29.5, "vita_universitaria"),
 ("Ti ammali il giorno prima dell unico appello disponibile", "1.png", 33.0, "vita_universitaria"),
-("Il tuo relatore di tesi va in sabbatical senza avvisarti", "1.png", 36.5, "vita_universitaria"),
+("Il tuo relatore di tesi va in vacanza senza avvisarti", "1.png", 36.5, "vita_universitaria"),
 ("Scopri che ti mancano 3 CFU per laurearti solo a dicembre", "1.png", 40.0, "vita_universitaria"),
 ("Il tuo coinquilino universitario non paga l affitto per 3 mesi", "1.png", 43.5, "vita_universitaria"),
 ("La borsa di studio viene revocata per un errore burocratico", "1.png", 47.0, "vita_universitaria"),
-
 ("Ti laurei e scopri che la tua università non è riconosciuta", "1.png", 52.5, "vita_universitaria"),
 ("Il tuo laptop si rompe con dentro la tesi non salvata", "1.png", 56.0, "vita_universitaria"),
 ("Vieni accusato ingiustamente di plagio alla tesi", "1.png", 59.5, "vita_universitaria"),
@@ -25,14 +24,12 @@ INSERT INTO cards (text, image_path, misfortune_index, category) VALUES
 ("Il tuo professore preferito ti mette 17 perché  puoi fare di più ", "1.png", 70.0, "vita_universitaria"),
 ("Perdi la sessione di laurea per un voto di 29.5", "1.png", 73.5, "vita_universitaria"),
 ("Ti eliminano dalla facoltà per troppe bocciature", "1.png", 77.0, "vita_universitaria"),
-
 ("La tua tesi viene copiata e pubblicata da qualcun altro", "2.png", 82.5, "vita_universitaria"),
 ("Il giorno della discussione di laurea scopri che il relatore è in ospedale", "2.png", 86.0, "vita_universitaria"),
 ("Un blackout cancella tutti i dati dal server universitario", "2.png", 89.5, "vita_universitaria"),
 ("Vieni arrestato per errore il giorno della laurea", "2.png", 93.0, "vita_universitaria"),
 ("L università chiude per sempre il giorno prima della tua laurea", "2.png", 96.5, "vita_universitaria"),
 ("Scopri che tutti i tuoi esami erano in realtà un esperimento psicologico", "2.png", 100.0, "vita_universitaria"),
-
 ("Il tuo coinquilino mangia sempre il tuo cibo dal frigo", "2.png", 11.0, "vita_universitaria"),
 ("Ti addormenti durante l unica lezione importante del corso", "2.png", 14.5, "vita_universitaria"),
 ("La biblioteca chiude proprio quando avevi trovato il libro perfetto", "2.png", 17.5, "vita_universitaria"),
@@ -52,4 +49,5 @@ INSERT INTO cards (text, image_path, misfortune_index, category) VALUES
 ("La segreteria perde tutti i tuoi documenti di iscrizione", "2.png", 80.5, "vita_universitaria"),
 ("Un terremoto distrugge l università il giorno della tua laurea", "2.png", 87.5, "vita_universitaria"),
 ("Scopri che il tuo certificato di maturità è falso", "2.png", 91.5, "vita_universitaria"),
+("Il tuo professore di tesi si dimette il giorno prima della discussione", "2.png", 94.5, "vita_universitaria"),
 ("Vieni rapito dagli alieni durante l esame più importante", "2.png", 98.0, "vita_universitaria");

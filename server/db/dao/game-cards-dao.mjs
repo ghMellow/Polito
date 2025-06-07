@@ -1,49 +1,4 @@
-export const addRoundCard = (db, gameId, cardId, roundNumber, won, initialCard, created_at) => {
-  return new Promise((resolve, reject) => {
-    const sql = 'INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card, created_at) VALUES (?, ?, ?, ?, ?, ?)';
-    db.run(sql, [gameId, cardId, roundNumber, won, initialCard, created_at], function(err) {
-      if (err)
-        reject(err);
-      else
-        resolve(this.lastID);
-    });
-  });
-};
-
-// get all cards of a game (won cards only)
-export const getGameWonCards = (db, gameId) => {
-  return new Promise((resolve, reject) => {
-    const sql = `
-      SELECT *
-      FROM cards c
-      JOIN game_cards gc ON c.id = gc.card_id
-      WHERE gc.game_id = ? AND gc.won = 1
-      ORDER BY c.misfortune_index ASC
-    `;
-    db.all(sql, [gameId], (err, rows) => {
-      if (err)
-        reject(err);
-      else
-        resolve(rows);
-    });
-  });
-};
-
-// get all cards used in a game (for avoiding duplicates)
-export const getGameUsedCards = (db, gameId) => {
-  return new Promise((resolve, reject) => {
-    const sql = 'SELECT card_id FROM game_cards WHERE game_id = ?';
-    db.all(sql, [gameId], (err, rows) => {
-      if (err)
-        reject(err);
-      else
-        resolve(rows.map(row => row.card_id));
-    });
-  });
-};
-
-// get game history with card details for a user
-export const getUserGameHistoryWithCards = (db, userId) => {
+export const getUserProfile = (db, userId) => {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT *
@@ -89,8 +44,50 @@ export const getUserGameHistoryWithCards = (db, userId) => {
   });
 };
 
-// get current round number for a game
-export const getNextRoundNumber = (db, gameId) => {
+
+export const addRoundCard = (db, gameId, cardId, roundNumber, won, initialCard, created_at) => {
+  return new Promise((resolve, reject) => {
+    const sql = 'INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card, created_at) VALUES (?, ?, ?, ?, ?, ?)';
+    db.run(sql, [gameId, cardId, roundNumber, won, initialCard, created_at], function(err) {
+      if (err)
+        reject(err);
+      else
+        resolve(this.lastID);
+    });
+  });
+};
+
+export const getGameWonCards = (db, gameId) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT *
+      FROM cards c
+      JOIN game_cards gc ON c.id = gc.card_id
+      WHERE gc.game_id = ? AND gc.won = 1
+      ORDER BY c.misfortune_index ASC
+    `;
+    db.all(sql, [gameId], (err, rows) => {
+      if (err)
+        reject(err);
+      else
+        resolve(rows);
+    });
+  });
+};
+
+export const getGameUsedCards = (db, gameId) => {
+  return new Promise((resolve, reject) => {
+    const sql = 'SELECT card_id FROM game_cards WHERE game_id = ?';
+    db.all(sql, [gameId], (err, rows) => {
+      if (err)
+        reject(err);
+      else
+        resolve(rows.map(row => row.card_id));
+    });
+  });
+};
+
+export const getCurrentRoundNumber = (db, gameId) => {
   return new Promise((resolve, reject) => {
     const sql = 'SELECT MAX(round_number) as max_round FROM game_cards WHERE game_id = ? AND round_number IS NOT NULL';
     db.get(sql, [gameId], (err, row) => {
@@ -102,7 +99,6 @@ export const getNextRoundNumber = (db, gameId) => {
   });
 };
 
-// delete all cards of a game (for cleanup)
 export const deleteGameCards = (db, gameId) => {
   return new Promise((resolve, reject) => {
     const sql = 'DELETE FROM game_cards WHERE game_id = ?';
