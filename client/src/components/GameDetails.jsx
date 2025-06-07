@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router';
+import { useParams, useLocation, Link } from 'react-router';
 import { Card, Row, Col, Badge } from 'react-bootstrap';
 import { LogoutButton } from './AuthComponents';
 import API from '../API/API.mjs';
@@ -8,25 +8,26 @@ import JdenticonAvatar from './JdenticonAvatar';
 
 function GameDetails(props) {
   const { gameId } = useParams();
+  const location = useLocation();
   const [gameData, setGameData] = useState();
 
   useEffect(() => {
     const fetchGameDetails = async () => {
-      if (props.loggedIn) {
-        try {
-          const profile = await API.getUserProfile();
-          
-          const game = profile.history.find(g => g.id === parseInt(gameId));
-          setGameData(game);
-        } catch (err) {
-          console.error('Errore nel recupero dei dettagli della partita:', err);
-          setGameData(null);
+      if (location.state?.gameData) {
+        const passedGame = location.state.gameData;
+        if (passedGame.id === parseInt(gameId)) {
+          setGameData(passedGame);
+          return;
+        } else {
+          throw new Error('Game data mismatch: passed game id does not match URL game id.');
         }
+      } else {
+        throw new Error('No location state provided with game data.');
       }
     };
 
     fetchGameDetails();
-  }, [gameId, props.loggedIn]);
+  }, [gameId, props.loggedIn, location.state]);
 
   const formatDate = (dateString) => {
     return dayjs(dateString).format('DD MMMM YYYY, HH:mm');

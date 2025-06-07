@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, Row, Col, Badge } from 'react-bootstrap';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { LogoutButton } from './AuthComponents';
 import API from '../API/API.mjs';
 import dayjs from 'dayjs';
@@ -8,6 +8,7 @@ import JdenticonAvatar from './JdenticonAvatar';
 
 function GamesHistory(props) {
   const [userProfile, setUserProfile] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -24,6 +25,14 @@ function GamesHistory(props) {
 
     fetchUserProfile();
   }, [props.loggedIn]);
+
+  const handleGameDetailsClick = (game) => {
+    navigate(`/history/${game.id}`, { 
+      state: { 
+        gameData: game
+      } 
+    });
+  };
 
   const formatDate = (dateString) => {
     return dayjs(dateString).format('DD MMMM YYYY, HH:mm');
@@ -118,12 +127,12 @@ function GamesHistory(props) {
                     </small>
                   </div>
                   <div className="mt-3 d-flex justify-content-between align-items-center">
-                    <Link
-                      to={`/history/${game.id}`}
+                    <button
+                      onClick={() => handleGameDetailsClick(game)}
                       className="btn btn-outline-primary btn-sm"
                     >
                       🔍 Vedi Dettagli
-                    </Link>
+                    </button>
                   </div>
                 </div>
 
