@@ -6,9 +6,7 @@ import GameGuessModel from '../models/GameGuessModel.mjs';
 
 function Game({ loggedIn }) {
   const navigate = useNavigate();
-  const gameGuessModel = new GameGuessModel();
 
-  // Stati del gioco
   const [gameState, setGameState] = useState('playing');
   const [currentGame, setCurrentGame] = useState(null);
   const [currentRound, setCurrentRound] = useState(1);
@@ -16,12 +14,23 @@ function Game({ loggedIn }) {
   const [targetCard, setTargetCard] = useState(null);
   const [playerCards, setPlayerCards] = useState([]);
   const [selectedPosition, setSelectedPosition] = useState(null);
-  
-  // Stati del popup risultato
-  const [showResultRound, setshowResultRound] = useState(false);
-  const [lastRoundGuessResult, setlastRoundGuessResult] = useState(null);
+  const [showResultPopUp, setshowResultPopUp] = useState(false);
+  const [lastRoundGuessPopUp, setlastRoundGuessPopUp] = useState(null);
 
-  // Auto-start del gioco quando il componente si monta
+  const gameGuessModel = new GameGuessModel();
+
+
+  const initializeGame = async () => {
+    try {      
+      const gameData = await API.createGame();
+      setCurrentGame(gameData);
+      setPlayerCards(gameData.cards);
+      await startNewRound(gameData.gameId);
+    } catch (error) {
+      console.error('Errore nell\'inizializzazione del gioco:', error);
+    }
+  };
+
   useEffect(() => {
     initializeGame();
   }, []);
@@ -34,41 +43,34 @@ function Game({ loggedIn }) {
       }
     });
   };
-
-  // Timer countdown
+  
   useEffect(() => {
-    let interval = null;
-    if (gameState === 'playing' && timer > 0) {
-      interval = setInterval(() => {
-        setTimer(timer => timer - 1);
-      }, 1000);
-    } else if (timer === 0 && gameState === 'playing') {
+    if (gameState !== 'playing') return;
+    
+    if (timer === 0) {
       handleTimeUp();
+      return;
     }
+
+    const interval = setInterval(
+      () => {
+        setTimer(timer => timer - 1);
+      }, 1000
+    );
     return () => clearInterval(interval);
   }, [gameState, timer]);
 
-  const initializeGame = async () => {
-    try {      
-      // Crea una nuova partita
-      const gameData = await API.createGame();
-      console.log('> Game data received:', gameData); 
-      setCurrentGame(gameData);
-      setPlayerCards(gameData.cards);
-      
-      // Inizia il primo round
-      await startNewRound(gameData.gameId);
-      
-    } catch (error) {
-      console.error('Errore nell\'inizializzazione del gioco:', error);
-    }
+  const handleTimeUp = async () => {
+    const position = selectedPosition !== null ? selectedPosition : -1;
+    await submitGuess(position);
   };
 
   const startNewRound = async (gameId = currentGame?.gameId) => {
     try {      
-      // Ottieni carta per il nuovo round
+      if (isNaN(Number(gameId))) {
+        throw new Error('gameId non è numerico');
+      }
       const roundData = await API.startNewRound(gameId);
-      console.log('> roundData data received:', roundData);
 
       setTargetCard(roundData.card);
       setCurrentRound(roundData.roundNumber);
@@ -78,26 +80,7 @@ function Game({ loggedIn }) {
       
     } catch (error) {
       console.error('Errore nel caricamento del round:', error);
-      if (error.message.includes('Demo game allows only one round')) {
-        setGameState('game_over');
-        setlastRoundGuessResult({
-          isGameOver: true,
-          message: 'Demo terminata! Registrati per giocare partite complete.',
-          finalGame: currentGame
-        });
-        setshowResultRound(true);
-      }
     }
-  };
-
-  const handlePositionSelect = (position) => {
-    if (gameState !== 'playing') return;
-    setSelectedPosition(position);
-  };
-
-  const handleTimeUp = async () => {
-    const position = selectedPosition !== null ? selectedPosition : -1;
-    await submitGuess(position);
   };
 
   const submitGuess = async (position) => {
@@ -110,8 +93,6 @@ function Game({ loggedIn }) {
         position,
         currentRound
       );
-      
-      console.log('> Sending validated guess data:', requestData);
 
       const result = await API.submitGuess(
         currentGame.gameId,
@@ -120,17 +101,11 @@ function Game({ loggedIn }) {
         requestData.roundNumber
       );
       
-      console.log('> Raw server response:', result);
-      
       const updatedGame = { ...result.game };
-      // Assicurati che abbia sempre gameId per consistenza
-      if (result.game.id && !result.game.gameId) {
-        updatedGame.gameId = result.game.id;
-      }
       setCurrentGame(updatedGame);
       setPlayerCards(result.game.cards);
       
-      setlastRoundGuessResult({
+      setlastRoundGuessPopUp({
         isCorrect: result.correct,
         correctPosition: result.correctPosition,
         selectedPosition: position,
@@ -140,7 +115,7 @@ function Game({ loggedIn }) {
         finalGame: result.game
       });
       
-      setshowResultRound(true);
+      setshowResultPopUp(true);
       
     } catch (error) {
       console.error('Errore nel submit della guess:', error);
@@ -149,13 +124,18 @@ function Game({ loggedIn }) {
   };
 
   const handleNextAction = () => {
-    setshowResultRound(false);
+    setshowResultPopUp(false);
     
-    if (lastRoundGuessResult.isGameOver) {
+    if (lastRoundGuessPopUp.isGameOver) {
       setGameState('game_over');
     } else {
       startNewRound(currentGame?.gameId);
     }
+  };
+
+  const handlePositionSelect = (position) => {
+    if (gameState !== 'playing') return;
+    setSelectedPosition(position);
   };
 
   const formatTime = (seconds) => {
@@ -188,8 +168,8 @@ return (
     </div>
 
     <RenderResultRound 
-      showResultRound={showResultRound}
-      lastRoundGuessResult={lastRoundGuessResult}
+      showResultPopUp={showResultPopUp}
+      lastRoundGuessPopUp={lastRoundGuessPopUp}
       loggedIn={loggedIn}
       currentGame={currentGame}
       goToSummary={goToSummary}
@@ -199,7 +179,6 @@ return (
 );
 }
 
-// Componente memoizzato per la sezione della carta target
 const RenderTargetCardSection = memo(({ targetCard, currentRound, timer, formatTime }) => {
   return (
     <Row style={{ height: '200px' }}>
@@ -267,7 +246,6 @@ const RenderTargetCardSection = memo(({ targetCard, currentRound, timer, formatT
   );
 });
 
-// Componente memoizzato per la sezione delle carte del giocatore
 const RenderPlayerCardsSection = memo(({ 
   currentGame, 
   playerCards, 
@@ -308,7 +286,6 @@ const RenderPlayerCardsSection = memo(({
   );
 });
 
-// Componente memoizzato per la griglia delle carte
 const RenderCardsGrid = memo(({ playerCards, selectedPosition, handlePositionSelect }) => {
   return (
     <div className="d-flex justify-content-center align-items-center flex-nowrap gap-2 overflow-auto">
@@ -392,16 +369,15 @@ const RenderCardsGrid = memo(({ playerCards, selectedPosition, handlePositionSel
   );
 });
 
-// Componente memoizzato per il modal dei risultati
 const RenderResultRound = memo(({ 
-  showResultRound, 
-  lastRoundGuessResult, 
+  showResultPopUp, 
+  lastRoundGuessPopUp, 
   loggedIn, 
   currentGame, 
   goToSummary, 
   handleNextAction 
 }) => {
-  if (!showResultRound) {
+  if (!showResultPopUp) {
     return null;
   }
 
@@ -412,11 +388,11 @@ const RenderResultRound = memo(({
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-body text-center p-4">
-              <RenderResultContent lastRoundGuessResult={lastRoundGuessResult} />
+              <RenderResultContent lastRoundGuessPopUp={lastRoundGuessPopUp} />
               <RenderResultActions 
                 loggedIn={loggedIn}
                 currentGame={currentGame}
-                lastRoundGuessResult={lastRoundGuessResult}
+                lastRoundGuessPopUp={lastRoundGuessPopUp}
                 goToSummary={goToSummary}
                 handleNextAction={handleNextAction}
               />
@@ -428,9 +404,8 @@ const RenderResultRound = memo(({
   );
 });
 
-// Componente memoizzato per il contenuto del risultato
-const RenderResultContent = memo(({ lastRoundGuessResult }) => {
-  if (lastRoundGuessResult?.isCorrect) {
+const RenderResultContent = memo(({ lastRoundGuessPopUp }) => {
+  if (lastRoundGuessPopUp?.isCorrect) {
     return (
       <>
         <div style={{ fontSize: '4rem' }} className="mb-3">🎉</div>
@@ -443,17 +418,16 @@ const RenderResultContent = memo(({ lastRoundGuessResult }) => {
     <>
       <h4 className="text-danger mb-3">Sbagliato!</h4>
       <p className="text-muted">
-        La posizione corretta era: {(lastRoundGuessResult?.correctPosition || 0) + 1}
+        La posizione corretta era: {(lastRoundGuessPopUp?.correctPosition || 0) + 1}
       </p>
     </>
   );
 });
 
-// Componente memoizzato per le azioni del risultato
 const RenderResultActions = memo(({ 
   loggedIn, 
   currentGame, 
-  lastRoundGuessResult, 
+  lastRoundGuessPopUp, 
   goToSummary, 
   handleNextAction 
 }) => {
@@ -472,7 +446,7 @@ const RenderResultActions = memo(({
     );
   }
 
-  if (currentGame?.status === 'won' || lastRoundGuessResult?.isGameOver) {
+  if (currentGame?.status === 'won' || lastRoundGuessPopUp?.isGameOver) {
     return (
       <div className="mt-4">
         <div className="d-grid gap-2">

@@ -35,8 +35,7 @@ function GameDetails(props) {
 
   const getStatusBadge = (status) => {
     return status === 'won' ? 
-      <Badge bg="success">Vinta 🏆</Badge> : 
-      <Badge bg="danger">Persa 😢</Badge>;
+      <Badge bg="success">Vinta 🏆</Badge> : <Badge bg="danger">Persa 😢</Badge>;
   };
 
   const getCardStatusBadge = (card) => {
@@ -89,7 +88,7 @@ function GameDetails(props) {
                       to="/history" 
                       className="btn btn-outline-secondary text-muted btn-sm d-inline-flex align-items-center"
                     >
-                      📜 Storico partite
+                      ↩️ Indietro
                     </Link>
                   </div>
                 </div>
@@ -159,7 +158,7 @@ function GameDetails(props) {
     return (
       <Card>
         <Card.Header>
-          <h5 className="mb-0">🃏 Carte della Partita ({gameData.cards?.length || 0})</h5>
+          <h5 className="mb-0">🃏 Carte della Partita</h5>
         </Card.Header>
         <Card.Body>
         <RenderCardsList />
