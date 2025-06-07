@@ -180,15 +180,24 @@ router.post('/:id/guess', [
     const cardCreatedTime = dayjs(roundCard.created_at);
     const timeDifference = currentTime.diff(cardCreatedTime, 'second');
 
+    // Ottieni le carte possedute PRIMA di qualsiasi modifica
+    const ownedCards = await getGameWonCards(db, gameId);
+    const sortedCards = ownedCards.sort((a, b) => a.misfortune_index - b.misfortune_index);
+    const correctPosition = findCorrectPosition(roundCard.misfortune_index, sortedCards);
+    const isCorrect = position === correctPosition;
+
     const initialCard = false;
+    let gameStatus = 'in_progress';
+    let message = '';
+
+    // Gestisci timeout
     if (timeDifference > 30) {
-      // Tempo scaduto - carta persa e non mostrata
+      // Tempo scaduto - carta persa
       const won = false;
       await addRoundCard(db, gameId, cardId, roundNumber, won, initialCard);
       await incrementWrongGuesses(db, gameId);
-
-      let gameStatus = 'in_progress';
-      let message = 'Time expired! You lost this card.';
+      
+      message = 'Time expired! You lost this card.';
 
       // Verifica sconfitta (3 errori)
       if (game.wrong_guesses + 1 >= 3) {
@@ -196,56 +205,24 @@ router.post('/:id/guess', [
         await updateGameStatus(db, gameId, gameStatus, game.total_cards);
         message = 'Game over! You made too many wrong guesses.';
       }
-
-      // Recupera stato aggiornato
-      const updatedGame = await getGame(db, gameId);
-      const updatedCards = await getGameWonCards(db, gameId);
-
-      return res.json({
-        correct: false,
-        timeExpired: true,
-        message: message,
-        game: {
-          id: updatedGame.id,
-          status: gameStatus,
-          total_cards: updatedGame.total_cards,
-          correct_guesses: updatedGame.correct_guesses,
-          wrong_guesses: updatedGame.wrong_guesses,
-          cards: updatedCards
-        }
-      });
-    }
-
-    // Ottieni le carte possedute
-    const ownedCards = await getGameWonCards(db, gameId);
-
-    // Verifica posizione del guess
-    const sortedCards = ownedCards.sort((a, b) => a.misfortune_index - b.misfortune_index);
-    const correctPosition = findCorrectPosition(roundCard.misfortune_index, sortedCards);
-
-    const isCorrect = position === correctPosition;
-
-    // Salva risultato del round
-    await addRoundCard(db, gameId, cardId, roundNumber, isCorrect, initialCard);
-
-    let gameStatus = 'in_progress';
-    let message = '';
-
-    if (isCorrect) {
-      // Carta vinta
+    } else if (isCorrect) {
+      // Carta indovinata correttamente
+      await addRoundCard(db, gameId, cardId, roundNumber, true, initialCard);
       await incrementCorrectGuesses(db, gameId);
+      
       message = 'Congratulations! You guessed correctly!';
 
       // Verifica vittoria (6 carte totali)
-      console.log('Total cards after guess:', ownedCards.length);
-      if ((ownedCards.length +1) >= 6) {
+      if ((ownedCards.length + 1) >= 6) {
         gameStatus = 'won';
         await updateGameStatus(db, gameId, 'won', 6);
         message = 'You won the game! Congratulations!';
       }
     } else {
-      // Carta persa
+      // Carta sbagliata
+      await addRoundCard(db, gameId, cardId, roundNumber, false, initialCard);
       await incrementWrongGuesses(db, gameId);
+      
       message = 'Wrong guess! Try again.';
 
       // Verifica sconfitta (3 errori)
@@ -256,19 +233,31 @@ router.post('/:id/guess', [
       }
     }
 
-    // Recupera stato aggiornato
+    // Recupera stato aggiornato DOPO tutte le modifiche
     const updatedGame = await getGame(db, gameId);
     const updatedCards = await getGameWonCards(db, gameId);
+
+    let cardToSend = roundCard;
+    if (timeDifference > 30 || !isCorrect) {
+      cardToSend = {
+        id: roundCard.id,
+        text: roundCard.text,
+        image_path: roundCard.image_path,
+        category: roundCard.category
+        // misfortune_index volutamente omesso
+      };
+    }
+    console.log("\n> > > roundCard: roundCard: \n\n", cardToSend);
 
     res.json({
       correct: isCorrect,
       correctPosition: correctPosition,
-      timeExpired: false,
-      card: roundCard, // Mostra tutti i dettagli solo se indovinato o tempo non scaduto
+      timeExpired: timeDifference > 30,
+      card: cardToSend,
       message: message,
       game: {
         id: updatedGame.id,
-        status: gameStatus,
+        status: updatedGame.status,
         total_cards: updatedGame.total_cards,
         correct_guesses: updatedGame.correct_guesses,
         wrong_guesses: updatedGame.wrong_guesses,
