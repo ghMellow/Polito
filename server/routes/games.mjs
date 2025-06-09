@@ -222,22 +222,11 @@ router.post('/:id/guess', [
     // Aggiorno stato dopo le modifiche
     const updatedGame = await getGame(db, gameId);
     const updatedCards = await getGameWonCards(db, gameId);
-
-    let cardToSend = roundCard;
-    if (timeDifference > 30 || !isCorrect) {
-      cardToSend = {
-        id: roundCard.id,
-        text: roundCard.text,
-        image_path: roundCard.image_path,
-        category: roundCard.category
-      };
-    }
-
+    
     res.json({
       correct: isCorrect,
       correctPosition: correctPosition,
       timeExpired: timeDifference > 30,
-      card: cardToSend,
       message: message,
       game: {
         gameId: updatedGame.id,

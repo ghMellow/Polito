@@ -7,13 +7,14 @@ import GameGuessModel from '../models/GameGuessModel.mjs';
 function Game({ loggedIn }) {
   const navigate = useNavigate();
 
-  const [gameState, setGameState] = useState('playing');
   const [currentGame, setCurrentGame] = useState(null);
+  const [gameState, setGameState] = useState('playing');
   const [currentRound, setCurrentRound] = useState(1);
   const [timer, setTimer] = useState(30);
   const [targetCard, setTargetCard] = useState(null);
   const [playerCards, setPlayerCards] = useState([]);
   const [selectedPosition, setSelectedPosition] = useState(null);
+  
   const [showResultPopUp, setshowResultPopUp] = useState(false);
   const [lastRoundGuessPopUp, setlastRoundGuessPopUp] = useState(null);
 
@@ -65,15 +66,12 @@ function Game({ loggedIn }) {
     await submitGuess(position);
   };
 
-  const startNewRound = async (gameId = currentGame?.gameId) => {
-    try {      
-      if (isNaN(Number(gameId))) {
-        throw new Error('gameId non è numerico');
-      }
+  const startNewRound = async (gameId) => {
+    try {
       const roundData = await API.startNewRound(gameId);
 
-      setTargetCard(roundData.card);
       setCurrentRound(roundData.roundNumber);
+      setTargetCard(roundData.card);
       setTimer(roundData.timeout);
       setSelectedPosition(null);
       setGameState('playing');
@@ -87,7 +85,6 @@ function Game({ loggedIn }) {
     try {      
       setGameState('paused');
 
-      // Serializza e valida i dati prima dell'invio
       const requestData = gameGuessModel.serializeGuessRequest(
         targetCard.id,
         position,
@@ -110,9 +107,7 @@ function Game({ loggedIn }) {
         correctPosition: result.correctPosition,
         selectedPosition: position,
         timeExpired: result.timeExpired,
-        message: result.message,
-        isGameOver: result.game.status !== 'in_progress',
-        finalGame: result.game
+        message: result.message
       });
       
       setshowResultPopUp(true);
@@ -126,8 +121,8 @@ function Game({ loggedIn }) {
   const handleNextAction = () => {
     setshowResultPopUp(false);
     
-    if (lastRoundGuessPopUp.isGameOver) {
-      setGameState('game_over');
+    if (currentGame.status === 'game_over') {
+      setGameState('paused');
     } else {
       startNewRound(currentGame?.gameId);
     }
@@ -427,7 +422,6 @@ const RenderResultContent = memo(({ lastRoundGuessPopUp }) => {
 const RenderResultActions = memo(({ 
   loggedIn, 
   currentGame, 
-  lastRoundGuessPopUp, 
   goToSummary, 
   handleNextAction 
 }) => {
@@ -446,7 +440,7 @@ const RenderResultActions = memo(({
     );
   }
 
-  if (currentGame?.status === 'won' || lastRoundGuessPopUp?.isGameOver) {
+  if (currentGame?.status !== 'in_progress') {
     return (
       <div className="mt-4">
         <div className="d-grid gap-2">

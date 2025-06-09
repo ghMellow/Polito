@@ -81,7 +81,6 @@ const createGame = async () => {
 };
 
 const startNewRound = async (gameId) => {
-  console.log("Starting new round for game ID mellow:", gameId);
   const response = await fetch(SERVER_URL + `/api/games/${gameId}/round`, {
     method: 'POST',
     credentials: 'include',
