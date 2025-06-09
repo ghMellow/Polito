@@ -2,7 +2,7 @@ import express from 'express';
 import dayjs from 'dayjs';
 import { param, check, validationResult } from 'express-validator';
 import { dbPromise } from '../db/db.mjs';
-import { getRandomCards, getCard } from '../db/dao/cards-dao.mjs';
+import { getAllCards, getCard } from '../db/dao/cards-dao.mjs';
 import {
   createGame,
   getGame,
@@ -65,6 +65,19 @@ router.post('/', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+
+export const getRandomCards = async (db, limit, hideMisfortune = false, excludeIds = []) => {
+  try {
+    const allCards = await getAllCards(db, hideMisfortune);
+    const filteredCards = allCards.filter(card => !excludeIds.includes(card.id));
+    return filteredCards
+      .sort(() => Math.random() - 0.5)
+      .slice(0, limit);
+  } catch (error) {
+    throw error;
+  }
+};
 
 router.post('/:id/round', [
   param('id').isInt({ min: 1 }).withMessage('Game ID must be a positive integer')
