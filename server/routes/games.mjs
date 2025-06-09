@@ -240,7 +240,7 @@ router.post('/:id/guess', [
       card: cardToSend,
       message: message,
       game: {
-        id: updatedGame.id,
+        gameId: updatedGame.id,
         status: updatedGame.status,
         total_cards: updatedGame.total_cards,
         correct_guesses: updatedGame.correct_guesses,
