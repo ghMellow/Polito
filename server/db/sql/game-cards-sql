@@ -17,8 +17,8 @@ INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUE
 INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUES (3, 3, NULL, 1, 1);
 INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUES (3, 8, NULL, 1, 1);
 INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUES (3, 13, NULL, 1, 1);
-INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUES (2, 17, 1, 0, 0);
-INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUES (2, 22, 2, 0, 0);
-INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUES (3, 18, 1, 1, 0);
-INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUES (3, 23, 2, 1, 0);
-INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUES (3, 28, 3, 1, 0);
+INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUES (3, 17, 1, 1, 0);
+INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUES (3, 22, 2, 1, 0);
+INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUES (3, 18, 3, 0, 0);
+INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUES (3, 19, 4, 0, 0);
+INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card) VALUES (3, 20, 5, 1, 0);
