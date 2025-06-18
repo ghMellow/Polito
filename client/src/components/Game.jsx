@@ -8,21 +8,21 @@ function Game({ loggedIn }) {
   const navigate = useNavigate();
 
   const [currentGame, setCurrentGame] = useState(null);
-  const [gameState, setGameState] = useState('playing');
+  const [gameState, setGameState] = useState('paused');
   const [currentRound, setCurrentRound] = useState(1);
   const [timer, setTimer] = useState(30);
   const [targetCard, setTargetCard] = useState(null);
   const [playerCards, setPlayerCards] = useState([]);
   const [selectedPosition, setSelectedPosition] = useState(null);
-  
+
+  const [showStartGamePopUp, setShowStartGamePopUp] = useState(true);
   const [showResultPopUp, setshowResultPopUp] = useState(false);
   const [lastRoundGuessPopUp, setlastRoundGuessPopUp] = useState(null);
 
   const gameGuessModel = new GameGuessModel();
 
-
   const initializeGame = async () => {
-    try {      
+    try {
       const gameData = await API.createGame();
       setCurrentGame(gameData);
       setPlayerCards(gameData.cards);
@@ -32,22 +32,23 @@ function Game({ loggedIn }) {
     }
   };
 
-  useEffect(() => {
-    initializeGame();
-  }, []);
+  const handleStartGame = async () => {
+    setShowStartGamePopUp(false);
+    await initializeGame();
+  };
 
   const goToSummary = () => {
-    navigate('/summary', { 
-      state: { 
-        gameData: currentGame, 
-        playerCards: playerCards 
+    navigate('/summary', {
+      state: {
+        gameData: currentGame,
+        playerCards: playerCards
       }
     });
   };
-  
+
   useEffect(() => {
     if (gameState !== 'playing') return;
-    
+
     if (timer === 0) {
       handleTimeUp();
       return;
@@ -75,14 +76,14 @@ function Game({ loggedIn }) {
       setTimer(roundData.timeout);
       setSelectedPosition(null);
       setGameState('playing');
-      
+
     } catch (error) {
       console.error('Errore nel caricamento del round:', error);
     }
   };
 
   const submitGuess = async (position) => {
-    try {      
+    try {
       setGameState('paused');
 
       const requestData = gameGuessModel.serializeGuessRequest(
@@ -97,11 +98,11 @@ function Game({ loggedIn }) {
         requestData.position,
         requestData.roundNumber
       );
-      
+
       const updatedGame = { ...result.game };
       setCurrentGame(updatedGame);
       setPlayerCards(result.game.cards);
-      
+
       setlastRoundGuessPopUp({
         isCorrect: result.correct,
         correctPosition: result.correctPosition,
@@ -109,9 +110,9 @@ function Game({ loggedIn }) {
         timeExpired: result.timeExpired,
         message: result.message
       });
-      
+
       setshowResultPopUp(true);
-      
+
     } catch (error) {
       console.error('Errore nel submit della guess:', error);
       setGameState('playing');
@@ -120,7 +121,7 @@ function Game({ loggedIn }) {
 
   const handleNextAction = () => {
     setshowResultPopUp(false);
-    
+
     if (currentGame.status === 'game_over') {
       setGameState('paused');
     } else {
@@ -137,78 +138,112 @@ function Game({ loggedIn }) {
     return `${seconds.toString().padStart(2, '0')}`;
   };
 
-return (
-  <div className="d-flex flex-column" style={{ minHeight: '100%', maxHeight: '100%' }}>
-    <div className="d-flex justify-content-center py-4">
-      <div style={{ width: '100%', maxWidth: '450px', height: 'auto' }}>
-        <RenderTargetCardSection 
-          targetCard={targetCard}
-          currentRound={currentRound}
-          timer={timer}
-          formatTime={formatTime}
-        />
-      </div>
-    </div>
-    <div className="container-fluid px-5 py-4 pb-4 flex-grow-1 overflow-hidden">
-      <div style={{ width: '100%', height: '100%', maxHeight: '400px' }}>
-        <RenderPlayerCardsSection 
-          currentGame={currentGame}
-          playerCards={playerCards}
-          selectedPosition={selectedPosition}
-          gameState={gameState}
-          handlePositionSelect={handlePositionSelect}
-          submitGuess={submitGuess}
-        />
-      </div>
-    </div>
+  if (showStartGamePopUp) {
+    return <RenderStartGame handleStartGame={handleStartGame} />;
+  } else {
+    return (
+      <div className="d-flex flex-column" style={{ minHeight: '100%', maxHeight: '100%' }}>
+        <div className="d-flex justify-content-center py-4">
+          <div style={{ width: '100%', maxWidth: '450px', height: 'auto' }}>
+            <RenderTargetCardSection
+              targetCard={targetCard}
+              currentRound={currentRound}
+              timer={timer}
+              formatTime={formatTime}
+            />
+          </div>
+        </div>
+        <div className="container-fluid px-5 py-4 pb-4 flex-grow-1 overflow-hidden">
+          <div style={{ width: '100%', height: '100%', maxHeight: '400px' }}>
+            <RenderPlayerCardsSection
+              currentGame={currentGame}
+              playerCards={playerCards}
+              selectedPosition={selectedPosition}
+              gameState={gameState}
+              handlePositionSelect={handlePositionSelect}
+              submitGuess={submitGuess}
+            />
+          </div>
+        </div>
 
-    <RenderResultRound 
-      showResultPopUp={showResultPopUp}
-      lastRoundGuessPopUp={lastRoundGuessPopUp}
-      loggedIn={loggedIn}
-      currentGame={currentGame}
-      goToSummary={goToSummary}
-      handleNextAction={handleNextAction}
-    />
-  </div>
-);
+        <RenderResultRound
+          showResultPopUp={showResultPopUp}
+          lastRoundGuessPopUp={lastRoundGuessPopUp}
+          loggedIn={loggedIn}
+          currentGame={currentGame}
+          goToSummary={goToSummary}
+          handleNextAction={handleNextAction}
+        />
+      </div>
+    );
+  }
+}
+
+function RenderStartGame({handleStartGame}){
+  return (
+    <>
+      <div className="modal-backdrop show"></div>
+      <div className="modal show d-block" tabIndex="-1">
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-body text-center p-4">
+              <div style={{ fontSize: '4rem' }} className="mb-3">🚦</div>
+              <p className="text-muted mb-4">
+                Sei pronto a iniziare? <br />
+                Dovrai indovinare la posizione delle carte! <br />
+                30 secondi per round, 3 errori consentiti.
+              </p>
+              <div className="d-grid gap-2">
+                <button
+                  className="btn btn-primary btn-lg"
+                  onClick={handleStartGame}
+                >
+                  🚀 Inizia Partita
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }
 
 const RenderTargetCardSection = memo(({ targetCard, currentRound, timer, formatTime }) => {
   return (
     <Row style={{ height: '200px' }}>
       <Col xs={6} className="d-flex align-items-center justify-content-center">
-        <Card 
-            className="border-2 me-2" 
-            style={{ 
-              width: '140px', 
-              height: '220px',
-              flexShrink: 0
-            }}
-          >
-          <Card.Body className="d-flex flex-column p-2">                  
-            <Card.Text 
-                className="small text-center mb-2"
-                style={{ 
-                  fontSize: '0.7rem',
-                  lineHeight: '1.1',
-                  overflow: 'auto',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 3,
-                  WebkitBoxOrient: 'vertical',
-                  minHeight: '2.5rem'
-                }}
-              >
-                {targetCard?.text || 'Seleziona una carta!'}
-              </Card.Text>
+        <Card
+          className="border-2 me-2"
+          style={{
+            width: '140px',
+            height: '220px',
+            flexShrink: 0
+          }}
+        >
+          <Card.Body className="d-flex flex-column p-2">
+            <Card.Text
+              className="small text-center mb-2"
+              style={{
+                fontSize: '0.7rem',
+                lineHeight: '1.1',
+                overflow: 'auto',
+                display: '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical',
+                minHeight: '2.5rem'
+              }}
+            >
+              {targetCard?.text || 'Seleziona una carta!'}
+            </Card.Text>
 
             {targetCard?.image_path && (
               <div className="flex-grow-1 d-flex align-items-center justify-content-center">
-                <img 
+                <img
                   src={API.getImage(targetCard.image_path)}
                   alt="Card image"
                   className="img-fluid"
-                  style={{ 
+                  style={{
                     maxHeight: '120px',
                     maxWidth: '100%',
                     objectFit: 'contain'
@@ -222,7 +257,7 @@ const RenderTargetCardSection = memo(({ targetCard, currentRound, timer, formatT
           </Card.Body>
         </Card>
       </Col>
-      
+
       <Col xs={4} className="d-flex align-items-center justify-content-center">
         <div className="text-center">
           <div className="mb-1">
@@ -241,13 +276,13 @@ const RenderTargetCardSection = memo(({ targetCard, currentRound, timer, formatT
   );
 });
 
-const RenderPlayerCardsSection = memo(({ 
-  currentGame, 
-  playerCards, 
-  selectedPosition, 
-  gameState, 
-  handlePositionSelect, 
-  submitGuess 
+const RenderPlayerCardsSection = memo(({
+  currentGame,
+  playerCards,
+  selectedPosition,
+  gameState,
+  handlePositionSelect,
+  submitGuess
 }) => {
   return (
     <Card className="h-100" style={{ maxWidth: '100%' }}>
@@ -258,24 +293,24 @@ const RenderPlayerCardsSection = memo(({
             Errori: {currentGame?.wrong_guesses || 0}/3
           </small>
         </div>
-        
+
         <div className="w-100 overflow-auto flex-grow-1 d-flex align-items-center justify-content-center">
-          <RenderCardsGrid 
+          <RenderCardsGrid
             playerCards={playerCards}
             selectedPosition={selectedPosition}
             handlePositionSelect={handlePositionSelect}
           />
         </div>
-        
+
         <div className="text-center mt-2">
-          <button 
+          <button
             className="btn btn-primary mt-4"
             disabled={selectedPosition === null || gameState !== 'playing'}
             onClick={() => submitGuess(selectedPosition)}
           >
             Conferma Scelta
           </button>
-        </div>  
+        </div>
       </Card.Body>
     </Card>
   );
@@ -293,19 +328,19 @@ const RenderCardsGrid = memo(({ playerCards, selectedPosition, handlePositionSel
           >
             {index + 1}
           </button>
-          
-          <Card 
-            className="border-2 me-2" 
-            style={{ 
-              width: '140px', 
+
+          <Card
+            className="border-2 me-2"
+            style={{
+              width: '140px',
               height: '220px',
               flexShrink: 0
             }}
           >
-            <Card.Body className="d-flex flex-column p-2">                  
-              <Card.Text 
+            <Card.Body className="d-flex flex-column p-2">
+              <Card.Text
                 className="small text-center mb-2"
-                style={{ 
+                style={{
                   fontSize: '0.7rem',
                   lineHeight: '1.1',
                   overflow: 'auto',
@@ -320,11 +355,11 @@ const RenderCardsGrid = memo(({ playerCards, selectedPosition, handlePositionSel
 
               {card?.image_path && (
                 <div className="flex-grow-1 d-flex align-items-center justify-content-center mb-2">
-                  <img 
+                  <img
                     src={API.getImage(card.image_path)}
                     alt="Card image"
                     className="img-fluid"
-                    style={{ 
+                    style={{
                       maxWidth: '100%',
                       maxHeight: '120px',
                       objectFit: 'contain'
@@ -335,13 +370,13 @@ const RenderCardsGrid = memo(({ playerCards, selectedPosition, handlePositionSel
                   />
                 </div>
               )}
-              
+
               <div className="mt-auto">
                 <div className="d-flex justify-content-between align-items-center">
                   <small className="text-muted" style={{ fontSize: '0.6rem' }}>Sfortuna:</small>
-                  <Badge 
-                    bg={card.misfortune_index > 70 ? 'danger' : 
-                        card.misfortune_index > 40 ? 'warning' : 'success'}
+                  <Badge
+                    bg={card.misfortune_index > 70 ? 'danger' :
+                      card.misfortune_index > 40 ? 'warning' : 'success'}
                     style={{ fontSize: '0.6rem' }}
                   >
                     {card.misfortune_index}
@@ -352,7 +387,7 @@ const RenderCardsGrid = memo(({ playerCards, selectedPosition, handlePositionSel
           </Card>
         </div>
       ))}
-      
+
       <button
         className={`btn ${selectedPosition === playerCards.length ? "btn-primary" : "btn-outline-secondary"} btn-sm flex-shrink-0`}
         onClick={() => handlePositionSelect(playerCards.length)}
@@ -364,13 +399,13 @@ const RenderCardsGrid = memo(({ playerCards, selectedPosition, handlePositionSel
   );
 });
 
-const RenderResultRound = memo(({ 
-  showResultPopUp, 
-  lastRoundGuessPopUp, 
-  loggedIn, 
-  currentGame, 
-  goToSummary, 
-  handleNextAction 
+const RenderResultRound = memo(({
+  showResultPopUp,
+  lastRoundGuessPopUp,
+  loggedIn,
+  currentGame,
+  goToSummary,
+  handleNextAction
 }) => {
   if (!showResultPopUp) {
     return null;
@@ -384,7 +419,7 @@ const RenderResultRound = memo(({
           <div className="modal-content">
             <div className="modal-body text-center p-4">
               <RenderResultContent lastRoundGuessPopUp={lastRoundGuessPopUp} />
-              <RenderResultActions 
+              <RenderResultActions
                 loggedIn={loggedIn}
                 currentGame={currentGame}
                 lastRoundGuessPopUp={lastRoundGuessPopUp}
@@ -419,11 +454,11 @@ const RenderResultContent = memo(({ lastRoundGuessPopUp }) => {
   );
 });
 
-const RenderResultActions = memo(({ 
-  loggedIn, 
-  currentGame, 
-  goToSummary, 
-  handleNextAction 
+const RenderResultActions = memo(({
+  loggedIn,
+  currentGame,
+  goToSummary,
+  handleNextAction
 }) => {
   if (!loggedIn) {
     return (
