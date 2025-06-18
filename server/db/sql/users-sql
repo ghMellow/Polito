@@ -4,3 +4,7 @@ INSERT INTO users (username, email, password, salt) VALUES
 ("Mellow", "mellow@gmail.com", "20866feb2a6e2285862896747f366340ee80af6675a3ac1c0a92fdccac38f531", "53aa97bfc8e12cbdbcbd45063867a1fc"),
 ("Nico", "s338680@studenti.polito.it", "d5f9ea7c9b886e4cfb831c6f9346962c2843cf7c9dfb3df6a35d049a28671c0d", "948c63ab1c3b36e63b675c032fb14394"),
 ("anonymous", "anonymous@example.com", "dummy", "dummy"); -- ricordati di cambiare il suo id con 0
+
+UPDATE users 
+SET id = 0 
+WHERE username = 'anonymous';
