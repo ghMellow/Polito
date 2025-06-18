@@ -64,7 +64,7 @@ const getImage = (imagePath) => {
 };
 
 const createGame = async () => {
-  const response = await fetch(SERVER_URL + '/api/games', {
+  const response = await fetch(SERVER_URL + '/api/games/new', {
     method: 'POST',
     credentials: 'include',
     headers: {

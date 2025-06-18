@@ -40,7 +40,6 @@ function Game({ loggedIn }) {
   const goToSummary = () => {
     navigate('/summary', {
       state: {
-        gameData: currentGame,
         playerCards: playerCards
       }
     });

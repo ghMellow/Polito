@@ -3,72 +3,82 @@
 
 ## React Client Application Routes
 
-- Route `/`: home page with game instructions and login/register options for new users
-- Route `/login`: authentication page for existing users
-- Route `/game`: main game interface where users play the "Gioco della Sfortuna"
-- Route `/game/:id`: specific game session page with game ID parameter
-- Route `/profile`: user profile page showing statistics and game history (protected route)
-- Route `/demo`: demo game page for anonymous users (single round only)
+- Route `/`: homepage che permette all'utente di interagire con le funzionalità dell'applicativo (info utente, login, regole, cronologia partite e giocare)
+- Route `/login`: form di autenticazione per utenti registrati
+- Route `/rules`: pagina con le regole e spiegazione del gioco
+- Route `/history`: cronologia delle partite completate (richiede autenticazione)
+- Route `/history/:gameId`: dettagli di una specifica partita dalla cronologia (richiede autenticazione)
+- Route `/game`: interfaccia di gioco
+- Route `/summary`: riepilogo della partita appena completata
+- Route `*`: pagina 404 per route non esistenti
 
 ## API Server
 
-### Authentication APIs
-- POST `/api/auth/login`
-  - request body: `{ "username": string, "password": string }`
-  - response body: `{ "id": number, "username": string, "created_at": string }`
+- **POST** `/api/auth/login`
+  - Request body: `{ email: string, password: string }`
+  - Response: User object `{ id, username, email }` o errore 401
+  - Autentica l'utente e crea una sessione
 
-- GET `/api/auth/session`
-  - request parameters: none (uses session cookie)
-  - response body: `{ "id": number, "username": string, "created_at": string }` or `{ "error": "Not authenticated" }`
+- **GET** `/api/auth/session`
+  - No parameters
+  - Response: ritorna l'oggetto User se autenticato o errore 401
+  - Verifica lo stato della sessione corrente
 
-- DELETE `/api/auth/logout`
-  - request parameters: none
-  - response body: empty (status 200)
+- **DELETE** `/api/auth/logout`
+  - No parameters
+  - Response: risponde con stato 200
+  - Termina la sessione dell'utente
 
-### Game APIs
-- POST `/api/games`
-  - request parameters: none (user ID from session if authenticated)
-  - response body: `{ "gameId": number, "status": "in_progress", "totalCards": 3, "wrongGuesses": 0, "cards": Array<Card> }`
+- **POST** `/api/games/new`
+  - Session: utilizza la sessione per reperire user ID se presente altrimenti assegna valore 0 ossia utente anonimo
+  - Response: `{ gameId, status, total_cards, correct_guesses, wrong_guesses, cards: [{ id, text, image_path, misfortune_index }] }`
+  - Crea una nuova partita con 3 carte iniziali casuali
 
-- GET `/api/games/:id`
-  - request parameters: `id` (game ID as integer)
-  - response body: `{ "id": number, "status": string, "totalCards": number, "wrongGuesses": number, "createdAt": string, "completedAt": string, "cards": Array<Card> }`
+- **POST** `/api/games/:id/round`
+  - URL param: `id` (game ID)
+  - Response: `{ roundNumber, card: { id, text, image_path }, timeout }`
+  - Genera una nuova carta per il round corrente (non restituisce il misfortune_index della carta)
 
-- POST `/api/games/:id/round`
-  - request parameters: `id` (game ID as integer)
-  - response body: `{ "roundNumber": number, "card": { "id": number, "name": string, "image_path": string }, "timeout": 30000 }`
+- **POST** `/api/games/:id/guess`
+  - URL param: `id` (game ID)
+  - Request body: `{ cardId: number, position: number, roundNumber: number }`
+  - Response: `{ correct, correctPosition, timeExpired, message, game: { gameId, status, total_cards, correct_guesses, wrong_guesses, cards: [{ id, text, image_path, misfortune_index }] } }`
+  - Valuta la posizione scelta dall'utente, aggiorna e ritorna lo stato della partita tra cui le carte possedute dall'utente e perciò l'eventuale indovinata (misfortune_index presente).
 
-- POST `/api/games/:id/guess`
-  - request parameters: `id` (game ID as integer)
-  - request body: `{ "cardId": number, "position": number, "roundNumber": number }`
-  - response body: `{ "correct": boolean, "correctPosition": number, "card": Card, "message": string, "game": GameState }`
+- **GET** `/api/users/profile`
+  - Richiede autenticazione, recupera id utente dalla sessione.
+  - Response: `{ history: [{ id, status, total_cards, wrong_guesses, correct_guesses, created_at, cards: [{ id, text, image_path, misfortune_index, round_number, won, initial_card }] }] }`
+  - Recupera i dati del profilo e la cronologia delle partite dell'utente loggato
 
-### User APIs
-- GET `/api/users/profile`
-  - request parameters: none (user ID from session)
-  - response body: `{ "user": User, "stats": GameStats, "history": Array<GameHistory> }`
-
-- GET `/api/users/history`
-  - request parameters: none (user ID from session)
-  - response body: `Array<GameHistory>`
-
+- **GET** `/api/cards/image/:path`
+  - URL param: `path` (percorso dell'immagine)
+  - Response: File immagine o 404 error
+  - Serve le immagini delle carte dalla cartella public/images
 
 ## Database Tables
 
-- Table `users` - contains user credentials and account information (id, username, email, password, salt)
-- Table `cards` - contains the 50+ misfortune situation cards with their details (id, text, image_path, misfortune_index, category, created_at)
-- Table `games` - contains game sessions and their status (id, user_id, status, total_cards, wrong_guesses, created_at, completed_at)
-- Table `game_cards` - contains the relationship between games and cards, tracking which cards were played in each game (id, game_id, card_id, round_number, won, initial_card, created_at)
+- Table `users` - contiene id, username, email, password (hash), salt per l'autenticazione degli utenti registrati
+- Table `cards` - contiene id, text, image_path, misfortune_index, category per tutte le carte del gioco
+- Table `games` - contiene id, user_id, status, total_cards, wrong_guesses, correct_guesses, created_at per tracciare le partite e i loro stati (in_progress, won, lost)
+- Table `game_cards` - contiene id, game_id, card_id, round_number, won, initial_card, created_at per collegare le carte alle partite e tracciare i risultati dei round
 
 ## Main React Components
 
+- `DefaultLayout (in DefaultLayout.jsx)`: definisce il layout principale dell'applicazione con navbar, container per messaggi e Outlet per il rendering delle pagine nested
+- `Home (in Home.jsx)`: homepage dell'applicazione mostra le informazioni del profilo utente, gestisce utenti loggati e ospiti, pulsanti per sezione regole e gioco
+- `GamesHistory (in GamesHistory.jsx)`: cronologia delle partite completate dall'utente e link ai dettagli (richiede login)
+- `GameDetails (in GameDetails.jsx)`: dettagli completi di una partita specifica con tutte le carte e risultati dei round (richiede login)
+- `Game (in Game.jsx)`: componente che gestisce le meccaniche di gioco, visualizza timer, la carta target e le carte del giocatore
+- `GameSummary (in GameSummary.jsx)`: riepilogo della partita conclusa, mostra le carte collezionate e pulsanti per nuova partita o torna alla home
+- `LoginForm (in AuthComponents.jsx)`: form di autenticazione con validazione e gestione errori di input (es: email deve avere @)
+- `LogoutButton (in AuthComponents.jsx)`: bottone che lancia handler di logout usato nelle altre schermate
+- `JdenticonAvatar (in JdenticonAvatar.jsx)`: componente per generare avatar unici basati su username usando libreria jdenticon
 
 ## Screenshot
 
-![Screenshot 1 - Game in Progress](./img/game-screenshot.jpg)
-![Screenshot 2 - User Profile History](./img/profile-screenshot.jpg)
+![Screenshot](./img/screenshot.jpg)
 
 ## Users Credentials
 
-- mario.rossi, password123 (user with game history - 3 completed games)
-- giulia.verdi, mypassword (new user with no game history)
+- Mellow, mellow@gmail.com, Mellow
+- Nico, s338680@studenti.polito.it, Password

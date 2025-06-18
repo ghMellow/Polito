@@ -3,15 +3,12 @@ import { Link, useLocation } from 'react-router';
 import { Card, Badge } from 'react-bootstrap';
 import API from '../API/API.mjs';
 
-function GameSummary({ loggedIn, user }) {
+function GameSummary() {
   const location = useLocation();
   const [playerCards, setPlayerCards] = useState([]);
-  const [gameData, setGameData] = useState(null);
 
   useEffect(() => {
-    // Recupera i dati passati tramite navigate
     if (location.state) {
-      setGameData(location.state.gameData);
       setPlayerCards(location.state.playerCards || []);
     }
   }, [location.state]);

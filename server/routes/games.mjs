@@ -23,7 +23,7 @@ import {
 // Route /api/games/
 const router = express.Router();
 
-router.post('/', async (req, res) => {
+router.post('/new', async (req, res) => {
   try {
     const db = await dbPromise;
     const userId = req.isAuthenticated() ? req.user.id : 0; // per utenti anonimi

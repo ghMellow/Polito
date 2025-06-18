@@ -59,10 +59,10 @@ function App() {
         <Route path="/" element={<Home loggedIn={loggedIn} user={user} handleLogout={handleLogout} />} />
         <Route path='/login' element={loggedIn ? <Navigate replace to='/' /> : <LoginForm handleLogin={handleLogin} />} />
         <Route path="/rules" element={<Rules />} />
-        <Route path="/game" element={<Game loggedIn={loggedIn}/>} />
         <Route path="/history" element={<GamesHistory loggedIn={loggedIn} user={user} handleLogout={handleLogout} />} />
         <Route path="/history/:gameId" element={<GameDetails loggedIn={loggedIn} user={user} handleLogout={handleLogout} />} />
-        <Route path="/summary" element={<GameSummary loggedIn={loggedIn} user={user} />} />
+        <Route path="/game" element={<Game loggedIn={loggedIn}/>} />
+        <Route path="/summary" element={<GameSummary />} />
         <Route path="*" element={ <NotFound /> } />
       </Route>
     </Routes>
