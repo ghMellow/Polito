@@ -76,7 +76,11 @@
 
 ## Screenshot
 
-![Screenshot](./img/screenshot.jpg)
+**Cronologia**
+![Screenshot](./img/cronologia.png)
+
+**Partita**
+![Screenshot](./img/partita.png)
 
 ## Users Credentials
 
