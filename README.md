@@ -69,10 +69,10 @@
 - `GamesHistory (in GamesHistory.jsx)`: cronologia delle partite completate dall'utente e link ai dettagli (richiede login)
 - `GameDetails (in GameDetails.jsx)`: dettagli completi di una partita specifica con tutte le carte e risultati dei round (richiede login)
 - `Game (in Game.jsx)`: componente che gestisce le meccaniche di gioco, visualizza timer, la carta target e le carte del giocatore
-- `GameSummary (in GameSummary.jsx)`: riepilogo della partita conclusa, mostra le carte collezionate e pulsanti per nuova partita o torna alla home
-- `LoginForm (in AuthComponents.jsx)`: form di autenticazione con validazione e gestione errori di input (es: email deve avere @)
+- `GameSummary (in GameSummary.jsx)`: riepilogo della partita conclusa, mostra le carte collezionate e pulsanti per nuova partita e torna alla home
+- `LoginForm (in AuthComponents.jsx)`: form di autenticazione con validazione e gestione errori di input
 - `LogoutButton (in AuthComponents.jsx)`: bottone che lancia handler di logout usato nelle altre schermate
-- `JdenticonAvatar (in JdenticonAvatar.jsx)`: componente per generare avatar unici basati su username usando libreria jdenticon
+- `UserAvatar (in UserAvatar.jsx)`: componente che mostra l'immagine utente. Per semplicità di sviluppo questa è uguale per tutti, utenti loggati e ospiti.
 
 ## Screenshot
 
@@ -80,5 +80,5 @@
 
 ## Users Credentials
 
-- Mellow, mellow@gmail.com, Mellow
-- Nico, s338680@studenti.polito.it, Password
+- mellow@gmail.com, Mellow
+- s338680@studenti.polito.it, Password

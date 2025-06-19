@@ -28,7 +28,6 @@ router.post('/new', async (req, res) => {
     const db = await dbPromise;
     const userId = req.isAuthenticated() ? req.user.id : 0; // per utenti anonimi
 
-    // Elimino partite in corso vecchie
     const inProgresGames = await getUserGamesInProgress(db, userId);
     if (inProgresGames.length > 0) {
       for (const currentGameInProgres of inProgresGames) {
@@ -36,11 +35,9 @@ router.post('/new', async (req, res) => {
       }
     }
 
-    // Crea nuova partita
     const created_at = dayjs().format();
     const gameId = await createGame(db, userId, created_at);
 
-    // Genera 3 carte iniziali casuali
     const limit = 3;
     const roundNumber = null;
     const won = true;

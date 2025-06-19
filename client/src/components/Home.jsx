@@ -1,7 +1,7 @@
 import { Card, Button, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router';
 import { LogoutButton } from './AuthComponents';
-import JdenticonAvatar from './JdenticonAvatar';
+import UserAvatar from './UserAvatar';
 
 function Home(props) {
   return (
@@ -19,22 +19,7 @@ function Home(props) {
         <Card.Body className="p-4">
           <Row className="align-items-center">
             <Col xs="auto">
-              <div 
-                className="rounded-circle d-flex align-items-center justify-content-center overflow-hidden"
-                style={{ width: '120px', height: '120px' }}
-              >
-                {props.loggedIn ? (
-                  <JdenticonAvatar 
-                    value={props.user.username || Math.random().toString(36).substring(2, 15)}  
-                    circular={true}
-                  />
-                ) : (
-                  <JdenticonAvatar 
-                    value={Math.random().toString(36).substring(2, 15)}
-                    circular={true}
-                  />
-                )}
-              </div>
+              <UserAvatar />
             </Col>
             <Col>
               <div className="d-flex justify-content-between align-items-start">

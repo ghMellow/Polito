@@ -23,15 +23,12 @@ function Rules() {
                             🔸 A ogni round riceverai una nuova situazione misteriosa. Vedi solo il nome e l'immagine... ma non il suo livello di sfortuna! 😬
                         </Card.Text>
                         <Card.Text>
-                            📍 Dovrai indovinare dove si colloca, per indice di sfortuna, tra le carte che già possiedi. Se indovini:
+                            📍 Dovrai indovinare dove si colloca, per indice di sfortuna, tra le carte che già possiedi. 30 secondi ⏱️ a disposizione. Se indovini:
                         </Card.Text>
                         <ul>
-                            <li>Hai 30 secondi ⏱️</li>
-                            <li>La carta viene aggiunta alla tua collezione</li>
+                            <li>✅ La carta viene aggiunta alla tua collezione</li>
+                            <li>❌ Se sbagli la perdi per sempre!</li>
                         </ul>
-                        <Card.Text>
-                            ❌ Se sbagli o scade il tempo, la perdi per sempre!
-                        </Card.Text>
                         <Card.Text>
                             🏁 La partita termina quando:
                         </Card.Text>

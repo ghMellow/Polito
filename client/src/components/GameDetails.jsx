@@ -4,7 +4,7 @@ import { Card, Row, Col, Badge } from 'react-bootstrap';
 import { LogoutButton } from './AuthComponents';
 import API from '../API/API.mjs';
 import dayjs from 'dayjs';
-import JdenticonAvatar from './JdenticonAvatar';
+import UserAvatar from './UserAvatar';
 
 function GameDetails(props) {
   const { gameId } = useParams();
@@ -62,15 +62,7 @@ function GameDetails(props) {
         <Card.Body className="p-4">
           <Row className="align-items-center">
             <Col xs="auto">
-              <div 
-                className="rounded-circle d-flex align-items-center justify-content-center overflow-hidden"
-                style={{ width: '120px', height: '120px' }}
-              >
-                <JdenticonAvatar 
-                  value={props.user?.username || Math.random().toString(36).substring(2, 15)}  
-                  circular={true}
-                />
-              </div>
+              <UserAvatar />
             </Col>
             <Col>
               <div className="d-flex justify-content-between align-items-start">

@@ -21,22 +21,6 @@ function Game({ loggedIn }) {
 
   const gameGuessModel = new GameGuessModel();
 
-  const initializeGame = async () => {
-    try {
-      const gameData = await API.createGame();
-      setCurrentGame(gameData);
-      setPlayerCards(gameData.cards);
-      await startNewRound(gameData.gameId);
-    } catch (error) {
-      console.error('Errore nell\'inizializzazione del gioco:', error);
-    }
-  };
-
-  const handleStartGame = async () => {
-    setShowStartGamePopUp(false);
-    await initializeGame();
-  };
-
   const goToSummary = () => {
     navigate('/summary', {
       state: {
@@ -46,24 +30,42 @@ function Game({ loggedIn }) {
   };
 
   useEffect(() => {
-    if (gameState !== 'playing') return;
-
-    if (timer === 0) {
-      handleTimeUp();
-      return;
-    }
-
-    const interval = setInterval(
-      () => {
+    let interval = null;
+  
+    if (gameState === 'playing' && timer > 0) {
+      interval = setInterval(() => {
         setTimer(timer => timer - 1);
-      }, 1000
-    );
+      }, 1000);
+    } else if (gameState === 'playing' && timer === 0) {
+      handleTimeUp();
+    }
+    
     return () => clearInterval(interval);
   }, [gameState, timer]);
+
+  const formatTime = (timer) => {
+    return `${timer.toString().padStart(2, '0')}`;
+  };
 
   const handleTimeUp = async () => {
     const position = selectedPosition !== null ? selectedPosition : -1;
     await submitGuess(position);
+  };
+  
+  const handleStartGame = async () => {
+    setShowStartGamePopUp(false);
+    await initializeGame();
+  };
+
+  const initializeGame = async () => {
+    try {
+      const gameData = await API.createGame();
+      setCurrentGame(gameData);
+      setPlayerCards(gameData.cards);
+      await startNewRound(gameData.gameId);
+    } catch (error) {
+      console.error('Errore nell\'inizializzazione del gioco:', error);
+    }
   };
 
   const startNewRound = async (gameId) => {
@@ -81,7 +83,7 @@ function Game({ loggedIn }) {
     }
   };
 
-  const submitGuess = async (position) => {
+  const submitGuess = async (position = -1) => {
     try {
       setGameState('paused');
 
@@ -133,10 +135,6 @@ function Game({ loggedIn }) {
     setSelectedPosition(position);
   };
 
-  const formatTime = (seconds) => {
-    return `${seconds.toString().padStart(2, '0')}`;
-  };
-
   if (showStartGamePopUp) {
     return <RenderStartGame handleStartGame={handleStartGame} />;
   } else {
@@ -178,7 +176,7 @@ function Game({ loggedIn }) {
   }
 }
 
-function RenderStartGame({handleStartGame}){
+function RenderStartGame({ handleStartGame }){
   return (
     <>
       <div className="modal-backdrop show"></div>
@@ -208,7 +206,7 @@ function RenderStartGame({handleStartGame}){
   );
 }
 
-const RenderTargetCardSection = memo(({ targetCard, currentRound, timer, formatTime }) => {
+function RenderTargetCardSection({ targetCard, currentRound, timer, formatTime }) {
   return (
     <Row style={{ height: '200px' }}>
       <Col xs={6} className="d-flex align-items-center justify-content-center">
@@ -273,16 +271,16 @@ const RenderTargetCardSection = memo(({ targetCard, currentRound, timer, formatT
       </Col>
     </Row>
   );
-});
+};
 
-const RenderPlayerCardsSection = memo(({
+function RenderPlayerCardsSection({
   currentGame,
   playerCards,
   selectedPosition,
   gameState,
   handlePositionSelect,
   submitGuess
-}) => {
+}){
   return (
     <Card className="h-100" style={{ maxWidth: '100%' }}>
       <Card.Body className="d-flex flex-column h-100">
@@ -313,9 +311,9 @@ const RenderPlayerCardsSection = memo(({
       </Card.Body>
     </Card>
   );
-});
+};
 
-const RenderCardsGrid = memo(({ playerCards, selectedPosition, handlePositionSelect }) => {
+function RenderCardsGrid ({ playerCards, selectedPosition, handlePositionSelect }){
   return (
     <div className="d-flex justify-content-center align-items-center flex-nowrap gap-2 overflow-auto">
       {playerCards.map((card, index) => (
@@ -396,16 +394,16 @@ const RenderCardsGrid = memo(({ playerCards, selectedPosition, handlePositionSel
       </button>
     </div>
   );
-});
+};
 
-const RenderResultRound = memo(({
+function RenderResultRound ({
   showResultPopUp,
   lastRoundGuessPopUp,
   loggedIn,
   currentGame,
   goToSummary,
   handleNextAction
-}) => {
+}) {
   if (!showResultPopUp) {
     return null;
   }
@@ -431,9 +429,9 @@ const RenderResultRound = memo(({
       </div>
     </>
   );
-});
+};
 
-const RenderResultContent = memo(({ lastRoundGuessPopUp }) => {
+function RenderResultContent ({ lastRoundGuessPopUp }) {
   if (lastRoundGuessPopUp?.isCorrect) {
     return (
       <>
@@ -451,14 +449,14 @@ const RenderResultContent = memo(({ lastRoundGuessPopUp }) => {
       </p>
     </>
   );
-});
+};
 
-const RenderResultActions = memo(({
+function RenderResultActions ({
   loggedIn,
   currentGame,
   goToSummary,
   handleNextAction
-}) => {
+}) {
   if (!loggedIn) {
     return (
       <div className="mt-4">
@@ -493,6 +491,6 @@ const RenderResultActions = memo(({
       </button>
     </div>
   );
-});
+};
 
 export default Game;
