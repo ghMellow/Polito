@@ -1,4 +1,4 @@
-import { Card, Button, Row, Col } from 'react-bootstrap';
+import { Card, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router';
 import { LogoutButton } from './AuthComponents';
 import UserAvatar from './UserAvatar';

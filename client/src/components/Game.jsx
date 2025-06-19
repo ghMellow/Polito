@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Card, Row, Col, Badge } from 'react-bootstrap';
 import GameAPI from '../API/gameAPI';

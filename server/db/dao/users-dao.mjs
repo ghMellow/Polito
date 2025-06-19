@@ -1,7 +1,24 @@
 import crypto from 'crypto';
 
+const BLACKLISTED_EMAIL_PATTERNS = [
+  /admin@admin\.com$/i,
+  /test@test\.com$/i,
+  /demo@demo\.com$/i,
+  /root@.*$/i,
+  /administrator@.*$/i,
+];
+
+const isBlacklistedEmail = (email) => {
+  return BLACKLISTED_EMAIL_PATTERNS.some(pattern => pattern.test(email));
+};
+
 export const getUser = async (db, email, password) => {
   return new Promise((resolve, reject) => {
+    if (isBlacklistedEmail(email)) {
+      resolve(false);
+      return;
+    }
+
     const sql = 'SELECT * FROM users WHERE email = ?';
     
     db.get(sql, [email], (err, row) => {
