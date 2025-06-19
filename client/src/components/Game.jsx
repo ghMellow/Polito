@@ -136,7 +136,7 @@ function Game({ loggedIn }) {
   };
 
   if (showStartGamePopUp) {
-    return <RenderStartGame handleStartGame={handleStartGame} />;
+    return <RenderStartGame handleStartGame={handleStartGame} loggedIn={loggedIn} />;
   } else {
     return (
       <div className="d-flex flex-column" style={{ minHeight: '100%', maxHeight: '100%' }}>
@@ -176,7 +176,7 @@ function Game({ loggedIn }) {
   }
 }
 
-function RenderStartGame({ handleStartGame }){
+function RenderStartGame({ handleStartGame, loggedIn }){
   return (
     <>
       <div className="modal-backdrop show"></div>
@@ -186,9 +186,19 @@ function RenderStartGame({ handleStartGame }){
             <div className="modal-body text-center p-4">
               <div style={{ fontSize: '4rem' }} className="mb-3">🚦</div>
               <p className="text-muted mb-4">
-                Sei pronto a iniziare? <br />
-                Dovrai indovinare la posizione delle carte! <br />
-                30 secondi per round, 3 errori consentiti.
+                {loggedIn && (
+                  <>
+                    Sei pronto a iniziare? <br />
+                    Dovrai indovinare la posizione delle carte! <br />
+                    30 secondi per round, 3 errori consentiti.
+                  </>
+                )}
+                {!loggedIn && (
+                  <>
+                    Indovina la posizione della carta! <br />
+                    30 secondi.
+                  </>
+                )}
               </p>
               <div className="d-grid gap-2">
                 <button
