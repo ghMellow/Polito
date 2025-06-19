@@ -34,7 +34,7 @@ function GameDetails(props) {
   };
 
   const getStatusBadge = (status) => {
-    return status === 'won' ? 
+    return status === 'won' ?
       <Badge bg="success">Vinta 🏆</Badge> : <Badge bg="danger">Persa 😢</Badge>;
   };
 
@@ -42,8 +42,8 @@ function GameDetails(props) {
     if (card.initial_card) {
       return <Badge bg="info">Carta Iniziale</Badge>;
     }
-    return card.won ? 
-      <Badge bg="success">Vinta ✅</Badge> : 
+    return card.won ?
+      <Badge bg="success">Vinta ✅</Badge> :
       <Badge bg="danger">Persa ❌</Badge>;
   };
 
@@ -70,14 +70,14 @@ function GameDetails(props) {
                   <h4 className="mb-2">{props.user?.username || 'Utente'}</h4>
                   <p className="text-muted mb-3">{props.user?.email || ''}</p>
                   <div className="d-flex gap-2">
-                    <Link 
-                      to="/" 
+                    <Link
+                      to="/"
                       className="btn btn-outline-info text-muted btn-sm d-inline-flex align-items-center"
                     >
                       🏠 Home
                     </Link>
-                    <Link 
-                      to="/history" 
+                    <Link
+                      to="/history"
                       className="btn btn-outline-secondary text-muted btn-sm d-inline-flex align-items-center"
                     >
                       ↩️ Indietro
@@ -122,7 +122,7 @@ function GameDetails(props) {
               <strong>{formatDate(gameData.created_at)}</strong>
             </Col>
           </Row>
-          
+
           <Row className="text-center">
             <Col xs={4}>
               <div className="border-end">
@@ -153,7 +153,7 @@ function GameDetails(props) {
           <h5 className="mb-0">🃏 Carte della Partita</h5>
         </Card.Header>
         <Card.Body>
-        <RenderCardsList />
+          <RenderCardsList />
         </Card.Body>
       </Card>
     );
@@ -164,52 +164,52 @@ function GameDetails(props) {
       <Row className="g-3">
         {gameData.cards
           .sort((a, b) => a.round_number - b.round_number)
-          .map((card) => (            
-          <Col key={card.id} md={6} lg={4}>
-            <Card className="h-100 border-2" >
-              
-              <Card.Body className="d-flex flex-column">
-                <div className="d-flex justify-content-between align-items-start mb-2">
-                  {card.round_number ? (<small className="text-muted">Round #{card.round_number}</small>) : ''}
-                  {getCardStatusBadge(card)}
-                </div>
-                
-                <Card.Text className="flex-grow-1">
-                  {card.text}
-                </Card.Text>
+          .map((card) => (
+            <Col key={card.id} md={6} lg={4}>
+              <Card className="h-100 border-2" >
 
-                {card.image_path && (
-                  <img 
-                    src={GameAPI.getImage(card.image_path)}
-                    alt="Card image"
-                    className="img-fluid mb-3"
-                    style={{ 
-                      width: '100%', 
-                      height: 'auto',
-                      objectFit: 'contain'
-                    }}
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                    }}
-                  />
-                )}
-              
-                <div className="mt-auto">
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <small className="text-muted">Indice Sfortuna:</small>
-                    <Badge 
-                      bg={card.misfortune_index > 70 ? 'danger' : 
-                          card.misfortune_index > 40 ? 'warning' : 'success'}
-                      className="fs-6"
-                    >
-                      {card.misfortune_index}
-                    </Badge>
+                <Card.Body className="d-flex flex-column">
+                  <div className="d-flex justify-content-between align-items-start mb-2">
+                    {card.round_number ? (<small className="text-muted">Round #{card.round_number}</small>) : ''}
+                    {getCardStatusBadge(card)}
                   </div>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
+
+                  <Card.Text className="flex-grow-1">
+                    {card.text}
+                  </Card.Text>
+
+                  {card.image_path && (
+                    <img
+                      src={GameAPI.getImage(card.image_path)}
+                      alt="Card image"
+                      className="img-fluid mb-3"
+                      style={{
+                        width: '100%',
+                        height: 'auto',
+                        objectFit: 'contain'
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  )}
+
+                  <div className="mt-auto">
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                      <small className="text-muted">Indice Sfortuna:</small>
+                      <Badge
+                        bg={card.misfortune_index > 70 ? 'danger' :
+                          card.misfortune_index > 40 ? 'warning' : 'success'}
+                        className="fs-6"
+                      >
+                        {card.misfortune_index}
+                      </Badge>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
       </Row>
     );
   }

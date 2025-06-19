@@ -13,7 +13,7 @@ export const getUserProfile = (db, userId) => {
         reject(err);
       else {
         const gamesMap = new Map();
-        
+
         rows.forEach(row => {
           if (!gamesMap.has(row.game_id)) {
             gamesMap.set(row.game_id, {
@@ -26,7 +26,7 @@ export const getUserProfile = (db, userId) => {
               cards: []
             });
           }
-          
+
           gamesMap.get(row.game_id).cards.push({
             id: row.card_id,
             text: row.text,
@@ -37,7 +37,7 @@ export const getUserProfile = (db, userId) => {
             initial_card: row.initial_card
           });
         });
-        
+
         resolve(Array.from(gamesMap.values()));
       }
     });
@@ -48,7 +48,7 @@ export const getUserProfile = (db, userId) => {
 export const addRoundCard = (db, gameId, cardId, roundNumber, won, initialCard, created_at) => {
   return new Promise((resolve, reject) => {
     const sql = 'INSERT INTO game_cards (game_id, card_id, round_number, won, initial_card, created_at) VALUES (?, ?, ?, ?, ?, ?)';
-    db.run(sql, [gameId, cardId, roundNumber, won, initialCard, created_at], function(err) {
+    db.run(sql, [gameId, cardId, roundNumber, won, initialCard, created_at], function (err) {
       if (err)
         reject(err);
       else
@@ -102,7 +102,7 @@ export const getCurrentRoundNumber = (db, gameId) => {
 export const deleteGameCards = (db, gameId) => {
   return new Promise((resolve, reject) => {
     const sql = 'DELETE FROM game_cards WHERE game_id = ?';
-    db.run(sql, [gameId], function(err) {
+    db.run(sql, [gameId], function (err) {
       if (err)
         reject(err);
       else

@@ -18,7 +18,7 @@ function GameSummary() {
       <div className="text-center mb-4">
         <h2>Riepilogo</h2>
       </div>
-      
+
       <RenderCardsListSection />
 
       <div className="text-center mt-4">
@@ -41,7 +41,7 @@ function GameSummary() {
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h6 className="mb-0">🃏 Le tue carte</h6>
           </div>
-          
+
           <div className="w-100 overflow-auto flex-grow-1 d-flex align-items-center justify-content-center">
             <RenderCardsGrid />
           </div>
@@ -55,18 +55,18 @@ function GameSummary() {
       <div className="d-flex justify-content-center align-items-center flex-nowrap gap-2 overflow-auto">
         {playerCards.map((card, index) => (
           <div key={card.id} className="d-flex align-items-center flex-shrink-0">
-            <Card 
-              className="border-2 me-2" 
-              style={{ 
-                width: '140px', 
+            <Card
+              className="border-2 me-2"
+              style={{
+                width: '140px',
                 height: '220px',
                 flexShrink: 0
               }}
             >
-              <Card.Body className="d-flex flex-column p-2">                  
-                <Card.Text 
+              <Card.Body className="d-flex flex-column p-2">
+                <Card.Text
                   className="small text-center mb-2"
-                  style={{ 
+                  style={{
                     fontSize: '0.7rem',
                     lineHeight: '1.1',
                     overflow: 'auto',
@@ -81,11 +81,11 @@ function GameSummary() {
 
                 {card?.image_path && (
                   <div className="flex-grow-1 d-flex align-items-center justify-content-center mb-2">
-                    <img 
+                    <img
                       src={GameAPI.getImage(card.image_path)}
                       alt="Card image"
                       className="img-fluid"
-                      style={{ 
+                      style={{
                         maxWidth: '100%',
                         maxHeight: '120px',
                         objectFit: 'contain'
@@ -96,13 +96,13 @@ function GameSummary() {
                     />
                   </div>
                 )}
-                
+
                 <div className="mt-auto">
                   <div className="d-flex justify-content-between align-items-center">
                     <small className="text-muted" style={{ fontSize: '0.6rem' }}>Sfortuna:</small>
-                    <Badge 
-                      bg={card.misfortune_index > 70 ? 'danger' : 
-                          card.misfortune_index > 40 ? 'warning' : 'success'}
+                    <Badge
+                      bg={card.misfortune_index > 70 ? 'danger' :
+                        card.misfortune_index > 40 ? 'warning' : 'success'}
                       style={{ fontSize: '0.6rem' }}
                     >
                       {card.misfortune_index}

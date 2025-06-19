@@ -6,9 +6,9 @@ import DefaultLayout from "./components/DefaultLayout";
 import NotFound from "./components/NotFound";
 import Home from "./components/Home";
 import Rules from "./components/Rules";
-import Game from "./components/Game"; 
+import Game from "./components/Game";
 import GamesHistory from "./components/GamesHistory";
-import GameDetails from "./components/GameDetails"; 
+import GameDetails from "./components/GameDetails";
 import GameSummary from "./components/GameSummary";
 import { LoginForm } from "./components/AuthComponents";
 import UserAPI from './API/userAPI';
@@ -38,10 +38,10 @@ function App() {
     try {
       const user = await UserAPI.logIn(credentials);
       setLoggedIn(true);
-      setMessage({msg: `Benvenuto, ${user.username}!`, type: 'success'});
+      setMessage({ msg: `Benvenuto, ${user.username}!`, type: 'success' });
       setUser(user);
-    }catch(err) {
-      setMessage({msg: err, type: 'danger'});
+    } catch (err) {
+      setMessage({ msg: err, type: 'danger' });
     }
   };
 
@@ -55,15 +55,15 @@ function App() {
 
   return (
     <Routes>
-      <Route element={ <DefaultLayout loggedIn={loggedIn} handleLogout={handleLogout} message={message} setMessage={setMessage} /> } >
+      <Route element={<DefaultLayout loggedIn={loggedIn} handleLogout={handleLogout} message={message} setMessage={setMessage} />} >
         <Route path="/" element={<Home loggedIn={loggedIn} user={user} handleLogout={handleLogout} />} />
         <Route path='/login' element={loggedIn ? <Navigate replace to='/' /> : <LoginForm handleLogin={handleLogin} />} />
         <Route path="/rules" element={<Rules />} />
         <Route path="/history" element={<GamesHistory loggedIn={loggedIn} user={user} handleLogout={handleLogout} />} />
         <Route path="/history/:gameId" element={<GameDetails loggedIn={loggedIn} user={user} handleLogout={handleLogout} />} />
-        <Route path="/game" element={<Game loggedIn={loggedIn}/>} />
+        <Route path="/game" element={<Game loggedIn={loggedIn} />} />
         <Route path="/summary" element={<GameSummary />} />
-        <Route path="*" element={ <NotFound /> } />
+        <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   )

@@ -27,10 +27,10 @@ function GamesHistory(props) {
   }, [props.loggedIn]);
 
   const handleGameDetailsClick = (game) => {
-    navigate(`/history/${game.id}`, { 
-      state: { 
+    navigate(`/history/${game.id}`, {
+      state: {
         gameData: game
-      } 
+      }
     });
   };
 

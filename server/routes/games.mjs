@@ -31,7 +31,7 @@ router.post('/new', async (req, res) => {
     const inProgresGames = await getUserGamesInProgress(db, userId);
     if (inProgresGames.length > 0) {
       for (const currentGameInProgres of inProgresGames) {
-          await deleteGame(db, currentGameInProgres.id);
+        await deleteGame(db, currentGameInProgres.id);
       }
     }
 
@@ -47,7 +47,7 @@ router.post('/new', async (req, res) => {
     for (const card of initialCards) {
       await addRoundCard(db, gameId, card.id, roundNumber, won, initialCard, created_at);
     }
-    
+
     res.status(201).json({
       gameId: gameId,
       status: 'in_progress',
@@ -157,7 +157,7 @@ router.post('/:id/guess', [
     if (req.isAuthenticated() && game.user_id !== req.user.id) {
       return res.status(403).json({ error: 'Access denied to this game' });
     }
-    
+
     const roundCard = await getCard(db, cardId);
     if (roundCard.error) {
       return res.status(404).json({ error: 'Card not found' });
@@ -170,7 +170,7 @@ router.post('/:id/guess', [
     const ownedCards = await getGameWonCards(db, gameId);
     const correctPosition = findCorrectPosition(roundCard.misfortune_index, ownedCards);
     const isCorrect = position === correctPosition;
-    
+
     const initialCard = false;
     let gameStatus = 'in_progress';
     let message = '';
@@ -179,9 +179,9 @@ router.post('/:id/guess', [
       won = false;
       await addRoundCard(db, gameId, cardId, roundNumber, won, initialCard);
       await incrementWrongGuesses(db, gameId);
-      
+
       message = 'Time expired! You lost this card.';
-      
+
       if (game.wrong_guesses + 1 >= 3) {
         gameStatus = 'lost';
         await updateGameStatus(db, gameId, gameStatus, game.total_cards);
@@ -191,9 +191,9 @@ router.post('/:id/guess', [
       won = true;
       await addRoundCard(db, gameId, cardId, roundNumber, won, initialCard);
       await incrementCorrectGuesses(db, gameId);
-      
+
       message = 'Congratulations! You guessed correctly!';
-      
+
       if ((ownedCards.length + 1) >= 6) {
         gameStatus = 'won';
         await updateGameStatus(db, gameId, 'won', 6);
@@ -203,9 +203,9 @@ router.post('/:id/guess', [
       won = false;
       await addRoundCard(db, gameId, cardId, roundNumber, won, initialCard);
       await incrementWrongGuesses(db, gameId);
-      
+
       message = 'Wrong guess! Try again.';
-      
+
       if (game.wrong_guesses + 1 >= 3) {
         gameStatus = 'lost';
         await updateGameStatus(db, gameId, 'lost', game.total_cards);
@@ -216,7 +216,7 @@ router.post('/:id/guess', [
     // Aggiorno stato dopo le modifiche
     const updatedGame = await getGame(db, gameId);
     const updatedCards = await getGameWonCards(db, gameId);
-    
+
     res.json({
       correct: isCorrect,
       correctPosition: correctPosition,

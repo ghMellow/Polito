@@ -1,4 +1,5 @@
 # Exam #2025: "Gioco della Sfortuna"
+
 ## Student: s338680 Termine Nicolò
 
 ## React Client Application Routes
@@ -84,5 +85,5 @@
 
 ## Users Credentials
 
-- mellow@gmail.com, Mellow
-- s338680@studenti.polito.it, Password
+- <mellow@gmail.com>, Mellow
+- <s338680@studenti.polito.it>, Password

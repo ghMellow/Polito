@@ -3,7 +3,7 @@ import { Form, Button, Alert, Card } from 'react-bootstrap';
 import { Link } from 'react-router';
 
 function LoginForm(props) {
-    const [state, formAction, isPending] = useActionState(loginFunction, {email: '', password: ''});
+    const [state, formAction, isPending] = useActionState(loginFunction, { email: '', password: '' });
 
     async function loginFunction(prevState, formData) {
         const credentials = {
@@ -22,7 +22,7 @@ function LoginForm(props) {
     return (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
             <div style={{ width: '100%', maxWidth: '35%' }}>
-                { isPending && <Alert variant="warning">Please, wait for the server's response...</Alert> }
+                {isPending && <Alert variant="warning">Please, wait for the server's response...</Alert>}
                 <Card>
                     <Card.Body>
                         <Card.Title className="text-center mb-4">Login</Card.Title>
@@ -41,7 +41,7 @@ function LoginForm(props) {
                                 <Button type='submit' disabled={isPending} style={{ minWidth: '100px' }}>Login</Button>
                                 <Link className='btn btn-danger' to={'/'} disabled={isPending} style={{ minWidth: '100px' }}>Annulla</Link>
                             </div>
-                            
+
                             {state.error && <p className="text-danger">{state.error}</p>}
                         </Form>
                     </Card.Body>
@@ -52,7 +52,7 @@ function LoginForm(props) {
 }
 
 function LogoutButton(props) {
-  return <Button variant='outline-danger' onClick={props.logout}>Logout </Button>;
+    return <Button variant='outline-danger' onClick={props.logout}>Logout </Button>;
 }
 
 export { LoginForm, LogoutButton };

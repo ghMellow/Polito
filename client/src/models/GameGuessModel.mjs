@@ -6,14 +6,14 @@ class GameGuessModel {
       roundNumber: { type: 'number', min: 1, required: true }
     };
   }
-  
+
   serializeGuessRequest(cardId, position, roundNumber) {
     const data = {
       cardId: parseInt(cardId),
       position: parseInt(position),
       roundNumber: parseInt(roundNumber)
     };
-    
+
     return data;
   }
 }

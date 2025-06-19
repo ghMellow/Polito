@@ -3,10 +3,10 @@ import { Link } from "react-router";
 
 function NavHeader() {
 
-  return(
+  return (
     <Navbar bg='primary'>
       <Container fluid>
-      <Link to="/" className="navbar-brand text-white">Gioco della Sfortuna 🎮</Link>
+        <Link to="/" className="navbar-brand text-white">Gioco della Sfortuna 🎮</Link>
       </Container>
     </Navbar>
   );

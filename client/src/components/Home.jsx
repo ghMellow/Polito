@@ -28,11 +28,11 @@ function Home(props) {
                     <>
                       <h4 className="mb-2">{props.user.username}</h4>
                       <p className="text-muted mb-3">{props.user.email}</p>
-                      <Link 
-                        to="/history" 
+                      <Link
+                        to="/history"
                         className="btn btn-outline-info text-muted btn-sm d-inline-flex align-items-center"
                       >
-                        Storico partite 📜 
+                        Storico partite 📜
                       </Link>
                     </>
                   ) : (
@@ -64,8 +64,8 @@ function Home(props) {
       <>
         <Row className="justify-content-center mb-3">
           <Col xs={8} sm={6}>
-            <Link 
-              to="/rules" 
+            <Link
+              to="/rules"
               className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center text-decoration-none"
               style={{ height: '60px' }}
             >
@@ -77,7 +77,7 @@ function Home(props) {
         </Row>
         <Row className="justify-content-center">
           <Col xs={8} sm={6}>
-            <Link 
+            <Link
               to="/game"
               className={`btn ${props.loggedIn ? "btn-success" : "btn-secondary"} w-100 d-flex align-items-center justify-content-center text-decoration-none`}
               style={{ height: '60px' }}

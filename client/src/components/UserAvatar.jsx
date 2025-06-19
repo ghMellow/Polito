@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
-function UserAvatar({ 
-  size = 120, 
+function UserAvatar({
+  size = 120,
   defaultColor = '#333333',
   borderColor = '#e5e7eb',
   borderWidth = 2
@@ -23,11 +23,11 @@ function UserAvatar({
     backgroundColor: defaultColor
   };
 
-  
+
   if (imageError) {
     return (
       <div style={containerStyle}>
-        <span 
+        <span
           style={{
             color: 'white',
             fontSize: size * 0.4,

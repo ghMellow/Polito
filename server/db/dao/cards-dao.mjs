@@ -21,7 +21,7 @@ export const getAllCards = (db, hideMisfortune = false) => {
     } else {
       sql = 'SELECT id, text, image_path FROM cards';
     }
-    
+
     db.all(sql, [], (err, rows) => {
       if (err)
         reject(err);

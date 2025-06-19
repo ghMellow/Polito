@@ -31,7 +31,7 @@ function Game({ loggedIn }) {
 
   useEffect(() => {
     let interval = null;
-  
+
     if (gameState === 'playing' && timer > 0) {
       interval = setInterval(() => {
         setTimer(timer => timer - 1);
@@ -39,7 +39,7 @@ function Game({ loggedIn }) {
     } else if (gameState === 'playing' && timer === 0) {
       handleTimeUp();
     }
-    
+
     return () => clearInterval(interval);
   }, [gameState, timer]);
 
@@ -51,7 +51,7 @@ function Game({ loggedIn }) {
     const position = selectedPosition !== null ? selectedPosition : -1;
     await submitGuess(position);
   };
-  
+
   const handleStartGame = async () => {
     setShowStartGamePopUp(false);
     await initializeGame();
@@ -176,7 +176,7 @@ function Game({ loggedIn }) {
   }
 }
 
-function RenderStartGame({ handleStartGame, loggedIn }){
+function RenderStartGame({ handleStartGame, loggedIn }) {
   return (
     <>
       <div className="modal-backdrop show"></div>
@@ -290,7 +290,7 @@ function RenderPlayerCardsSection({
   gameState,
   handlePositionSelect,
   submitGuess
-}){
+}) {
   return (
     <Card className="h-100" style={{ maxWidth: '100%' }}>
       <Card.Body className="d-flex flex-column h-100">
@@ -323,7 +323,7 @@ function RenderPlayerCardsSection({
   );
 };
 
-function RenderCardsGrid ({ playerCards, selectedPosition, handlePositionSelect }){
+function RenderCardsGrid({ playerCards, selectedPosition, handlePositionSelect }) {
   return (
     <div className="d-flex justify-content-center align-items-center flex-nowrap gap-2 overflow-auto">
       {playerCards.map((card, index) => (
@@ -406,7 +406,7 @@ function RenderCardsGrid ({ playerCards, selectedPosition, handlePositionSelect 
   );
 };
 
-function RenderResultRound ({
+function RenderResultRound({
   showResultPopUp,
   lastRoundGuessPopUp,
   loggedIn,
@@ -441,7 +441,7 @@ function RenderResultRound ({
   );
 };
 
-function RenderResultContent ({ lastRoundGuessPopUp }) {
+function RenderResultContent({ lastRoundGuessPopUp }) {
   if (lastRoundGuessPopUp?.isCorrect) {
     return (
       <>
@@ -461,7 +461,7 @@ function RenderResultContent ({ lastRoundGuessPopUp }) {
   );
 };
 
-function RenderResultActions ({
+function RenderResultActions({
   loggedIn,
   currentGame,
   goToSummary,

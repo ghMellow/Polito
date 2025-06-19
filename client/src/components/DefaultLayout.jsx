@@ -3,8 +3,8 @@ import { Outlet } from "react-router";
 import NavHeader from "./NavHeader";
 
 function DefaultLayout(props) {
-  
-  return(
+
+  return (
     <>
       <NavHeader loggedIn={props.loggedIn} handleLogout={props.handleLogout} />
       <Container fluid className="mt-3">

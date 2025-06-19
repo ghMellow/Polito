@@ -1,7 +1,7 @@
 export const createGame = (db, userId, created_at) => {
   return new Promise((resolve, reject) => {
     const sql = 'INSERT INTO games (user_id, status, total_cards, wrong_guesses, correct_guesses, created_at) VALUES (?, ?, ?, ?, ?, ?)';
-    db.run(sql, [userId, 'in_progress', 3, 0, 0, created_at], function(err) {
+    db.run(sql, [userId, 'in_progress', 3, 0, 0, created_at], function (err) {
       if (err)
         reject(err);
       else
@@ -44,7 +44,7 @@ export const getUserGamesInProgress = (db, userId) => {
 export const updateGameStatus = (db, gameId, status) => {
   return new Promise((resolve, reject) => {
     const sql = 'UPDATE games SET status = ? WHERE id = ?';
-    db.run(sql, [status, gameId], function(err) {
+    db.run(sql, [status, gameId], function (err) {
       if (err)
         reject(err);
       else
@@ -56,7 +56,7 @@ export const updateGameStatus = (db, gameId, status) => {
 export const incrementWrongGuesses = (db, gameId) => {
   return new Promise((resolve, reject) => {
     const sql = 'UPDATE games SET wrong_guesses = wrong_guesses + 1, total_cards = total_cards + 1 WHERE id = ?';
-    db.run(sql, [gameId], function(err) {
+    db.run(sql, [gameId], function (err) {
       if (err)
         reject(err);
       else
@@ -68,7 +68,7 @@ export const incrementWrongGuesses = (db, gameId) => {
 export const incrementCorrectGuesses = (db, gameId) => {
   return new Promise((resolve, reject) => {
     const sql = 'UPDATE games SET correct_guesses = correct_guesses + 1, total_cards = total_cards + 1 WHERE id = ?';
-    db.run(sql, [gameId], function(err) {
+    db.run(sql, [gameId], function (err) {
       if (err)
         reject(err);
       else
@@ -80,7 +80,7 @@ export const incrementCorrectGuesses = (db, gameId) => {
 export const deleteGame = (db, gameId) => {
   return new Promise((resolve, reject) => {
     const sql = 'DELETE FROM games WHERE id = ?';
-    db.run(sql, [gameId], function(err) {
+    db.run(sql, [gameId], function (err) {
       if (err)
         reject(err);
       else

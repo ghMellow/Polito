@@ -4,7 +4,7 @@ import passport from 'passport';
 // Route /api/auth/
 const router = express.Router();
 
-router.post('/login', passport.authenticate('local'), function(req, res) {
+router.post('/login', passport.authenticate('local'), function (req, res) {
   return res.status(201).json(req.user);
 });
 

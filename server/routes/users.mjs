@@ -10,13 +10,13 @@ router.get('/profile', isLoggedIn, async (req, res) => {
   try {
     const db = await dbPromise;
     const user = req.user;
-    
+
     const gameHistory = await getUserProfile(db, user.id);
-    
+
     res.json({
       history: gameHistory
     });
-    
+
   } catch (error) {
     console.error('Errore nel recupero profilo utente:', error);
     res.status(500).json({ error: 'Internal server error' });
