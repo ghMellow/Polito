@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, Row, Col, Badge } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router';
 import { LogoutButton } from './AuthComponents';
-import API from '../API/API.mjs';
+import UserAPI from '../API/userAPI';
 import dayjs from 'dayjs';
 import UserAvatar from './UserAvatar';
 
@@ -14,7 +14,7 @@ function GamesHistory(props) {
     const fetchUserProfile = async () => {
       if (props.loggedIn) {
         try {
-          const profile = await API.getUserProfile();
+          const profile = await UserAPI.getUserProfile();
           setUserProfile(profile);
         } catch (err) {
           console.error('Errore nel caricamento del profilo:', err);

@@ -11,7 +11,7 @@ import GamesHistory from "./components/GamesHistory";
 import GameDetails from "./components/GameDetails"; 
 import GameSummary from "./components/GameSummary";
 import { LoginForm } from "./components/AuthComponents";
-import API from "./API/API.mjs";
+import UserAPI from './API/userAPI';
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -23,7 +23,7 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const user = await API.getUserInfo();
+        const user = await UserAPI.getUserInfo();
         setLoggedIn(true);
         setUser(user);
       } catch (error) {
@@ -36,7 +36,7 @@ function App() {
 
   const handleLogin = async (credentials) => {
     try {
-      const user = await API.logIn(credentials);
+      const user = await UserAPI.logIn(credentials);
       setLoggedIn(true);
       setMessage({msg: `Benvenuto, ${user.username}!`, type: 'success'});
       setUser(user);
@@ -46,7 +46,7 @@ function App() {
   };
 
   const handleLogout = async () => {
-    await API.logOut();
+    await UserAPI.logOut();
     setLoggedIn(false);
     // clean up everything
     setMessage('');

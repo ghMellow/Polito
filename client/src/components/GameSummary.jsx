@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router';
 import { Card, Badge } from 'react-bootstrap';
-import API from '../API/API.mjs';
+import GameAPI from '../API/gameAPI';
 
 function GameSummary() {
   const location = useLocation();
@@ -82,7 +82,7 @@ function GameSummary() {
                 {card?.image_path && (
                   <div className="flex-grow-1 d-flex align-items-center justify-content-center mb-2">
                     <img 
-                      src={API.getImage(card.image_path)}
+                      src={GameAPI.getImage(card.image_path)}
                       alt="Card image"
                       className="img-fluid"
                       style={{ 

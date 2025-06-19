@@ -12,14 +12,12 @@ export const getUser = async (db, email, password) => {
         resolve(false); 
       }
       else {
-        // Prepariamo l'oggetto utente pulito (senza dati sensibili)
         const user = {
           id: row.id, 
           username: row.username,
           email: row.email
         };
         
-        // Verifica password con crypto.scrypt (più sicuro di pbkdf2)
         crypto.scrypt(password, row.salt, 32, function(err, hashedPassword) {
           if (err) reject(err);
           

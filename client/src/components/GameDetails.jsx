@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useLocation, Link } from 'react-router';
 import { Card, Row, Col, Badge } from 'react-bootstrap';
 import { LogoutButton } from './AuthComponents';
-import API from '../API/API.mjs';
+import GameAPI from '../API/gameAPI';
 import dayjs from 'dayjs';
 import UserAvatar from './UserAvatar';
 
@@ -180,7 +180,7 @@ function GameDetails(props) {
 
                 {card.image_path && (
                   <img 
-                    src={API.getImage(card.image_path)}
+                    src={GameAPI.getImage(card.image_path)}
                     alt="Card image"
                     className="img-fluid mb-3"
                     style={{ 

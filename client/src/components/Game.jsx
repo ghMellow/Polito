@@ -1,8 +1,8 @@
 import { useState, useEffect, memo } from 'react';
 import { useNavigate } from 'react-router';
 import { Card, Row, Col, Badge } from 'react-bootstrap';
-import API from '../API/API.mjs';
-import GameGuessModel from '../models/GameGuessModel.mjs';
+import GameAPI from '../API/gameAPI';
+import GameGuessModel from '../models/GameGuessModel';
 
 function Game({ loggedIn }) {
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ function Game({ loggedIn }) {
 
   const initializeGame = async () => {
     try {
-      const gameData = await API.createGame();
+      const gameData = await GameAPI.createGame();
       setCurrentGame(gameData);
       setPlayerCards(gameData.cards);
       await startNewRound(gameData.gameId);
@@ -70,7 +70,7 @@ function Game({ loggedIn }) {
 
   const startNewRound = async (gameId) => {
     try {
-      const roundData = await API.startNewRound(gameId);
+      const roundData = await GameAPI.startNewRound(gameId);
 
       setCurrentRound(roundData.roundNumber);
       setTargetCard(roundData.card);
@@ -93,7 +93,7 @@ function Game({ loggedIn }) {
         currentRound
       );
 
-      const result = await API.submitGuess(
+      const result = await GameAPI.submitGuess(
         currentGame.gameId,
         requestData.cardId,
         requestData.position,
@@ -237,7 +237,7 @@ function RenderTargetCardSection({ targetCard, currentRound, timer, formatTime }
             {targetCard?.image_path && (
               <div className="flex-grow-1 d-flex align-items-center justify-content-center">
                 <img
-                  src={API.getImage(targetCard.image_path)}
+                  src={GameAPI.getImage(targetCard.image_path)}
                   alt="Card image"
                   className="img-fluid"
                   style={{
@@ -353,7 +353,7 @@ function RenderCardsGrid ({ playerCards, selectedPosition, handlePositionSelect 
               {card?.image_path && (
                 <div className="flex-grow-1 d-flex align-items-center justify-content-center mb-2">
                   <img
-                    src={API.getImage(card.image_path)}
+                    src={GameAPI.getImage(card.image_path)}
                     alt="Card image"
                     className="img-fluid"
                     style={{

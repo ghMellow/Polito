@@ -108,7 +108,6 @@ router.post('/:id/round', [
       });
     }
 
-    // Genera carta casuale non ancora usata
     const limit = 1;
     const hideMisfortune = true;
     const usedCardIds = await getGameUsedCards(db, gameId);
@@ -164,12 +163,10 @@ router.post('/:id/guess', [
       return res.status(404).json({ error: 'Card not found' });
     }
 
-    // Verifico timer
     const currentTime = dayjs();
     const cardCreatedTime = dayjs(roundCard.created_at);
     const timeDifference = currentTime.diff(cardCreatedTime, 'second');
 
-    // Verifico posizione 
     const ownedCards = await getGameWonCards(db, gameId);
     const correctPosition = findCorrectPosition(roundCard.misfortune_index, ownedCards);
     const isCorrect = position === correctPosition;

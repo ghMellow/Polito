@@ -1,6 +1,4 @@
 import express from 'express';
-import { dbPromise } from '../db/db.mjs';
-import { getCard } from '../db/dao/cards-dao.mjs';
 
 // Route /api/cards/
 const router = express.Router();
