@@ -147,6 +147,28 @@ fn main() {
     insert(&mut v, & binding);
     println!("{:?}", v);
 
+    // --
+    // iteratori
+    let numbers = vec![1,2,3,4,5,6,7,8];
+    let res = numbers.iter().filter(|&x| x%2 == 0 ).zip('a'..'z');
+    let last = res.clone().map(|(a,b)| { format!("{}-{}", b, a) }).last();
+
+    println!("> last: {:?}", last);
+    println!("> res count: {:?}", res.count());
+
+    // --
+    // Tratti
+    #[derive(Debug)]
+    struct S { i: i32 }
+    impl From<i32> for S { fn from(i:i32) -> Self { S{ i } } }
+    impl Clone for S { fn clone(&self) -> Self { S{ i: self.i } } }
+
+    let mut vec = Vec::<S>::new();
+    let s: S = 42.into();
+    for i in 0..3 {
+        vec.push(s.clone());
+    }
+    println!("{:?}", vec);
 
     // --
     // Chiusure
@@ -161,13 +183,15 @@ fn main() {
 
     // --
     let mut count = 0;
-    let mut increment = move || {
+    let mut increment = || {
         count += 1; // Incrementiamo la variabile catturata
         println!("Il conteggio è: {}", count);
     };
     increment();
-    count += 1;
-    println!("Il conteggio è: {}", count);
+
+    //count += 1;
+    println!("Il conteggio è: {}", count); // chiusure per possesso guardare var a cui sono assegnate. Qui la validità di increment  tale fino a che non viene usata count che è il vero possessore
+    // increment(); // dopo il rif mut è invalido!
 
     // --
     let mut data = vec![1, 2, 3, 4, 5];

@@ -40,7 +40,7 @@ fn main() {
     handles.push(handle);
 
     for i in 1..10{
-        let reader = Arc::clone(&thread_pool);
+        let reader = thread_pool.clone();//Arc::clone(&thread_pool);
         let handle = thread::spawn(move || {
             let mut guard = reader.data.lock().expect("couldn't acquire lock");
 

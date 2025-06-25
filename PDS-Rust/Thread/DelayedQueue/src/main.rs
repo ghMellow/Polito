@@ -51,11 +51,11 @@ impl<T> DelayedQueue<T> {
             /// DeadLock togli e poi rimetti ma coda (mutex) rimane in possesso a take fino alla wait ma offer lo richiede!
             /// Bisogna usare peek() che permette di vedere senza estrarre il dato.
             /// ATTENZIONE: il metodo peek non è presente in Vec perciò bisogna usare BinaryHeap
-            let first = coda.peek().unwrap();
+            let first = coda.peek().unwrap(); // riferimento al primo elemento del binary heap
 
             let now = Instant::now();
-            if first.time < now {
-                let item = coda.pop().unwrap();
+            if first.time <= now {
+                let item = coda.pop().unwrap(); // pop del primo elemento in testa!
                 return Some(item);
             } else {
                 let delta = first.time - now;

@@ -1,5 +1,5 @@
 use std::sync::{mpsc, Arc, Condvar};
-use std::thread;
+use std::{thread};
 use std::time::Duration;
 
 /**
@@ -23,7 +23,7 @@ pub struct Lavoratore {
 
 pub fn crea_arbitro() -> (Arbitro, Vec<Lavoratore>) {
     // arbitro
-    let (tx_arbtro, rx_arbtro) = mpsc::channel();
+    let (tx_arbitro, rx_arbitro) = mpsc::channel();
     let mut txs_lavoratori = vec![];
 
     // lavoratori
@@ -32,10 +32,10 @@ pub fn crea_arbitro() -> (Arbitro, Vec<Lavoratore>) {
         let (tx, rx) = mpsc::channel();
 
         txs_lavoratori.push(tx.clone());
-        vec_lavoratori.push(Lavoratore{ tx: tx_arbtro.clone(), rx });
+        vec_lavoratori.push(Lavoratore{ tx: tx_arbitro.clone(), rx });
     }
 
-    (Arbitro{txs: txs_lavoratori, rx: rx_arbtro}, vec_lavoratori)
+    (Arbitro{txs: txs_lavoratori, rx: rx_arbitro}, vec_lavoratori)
 }
 
 fn main() {
