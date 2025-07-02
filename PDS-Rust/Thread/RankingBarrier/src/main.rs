@@ -1,73 +1,87 @@
-use std::collections::VecDeque;
-use std::sync::mpsc::{Sender, Receiver};
-use std::sync::{Mutex, Arc, mpsc};
-use std::thread;
-use std::time::Duration;
-use fastrand;
+use std::{sync::{Arc, Condvar, Mutex}, thread, time::Duration};
 
-pub struct Canale {
-    tx: Sender<usize>, // trasmettitore al proprietario
-    rx: Receiver<usize>, // ricevitore proprio
-}
-pub struct RankingBarrier{
-    txs: Vec<Sender<usize>>, // trasmettitore di tutti i canali
-    rx: Receiver<usize>, // ricevitore proprio
 
-    coda: VecDeque<usize> // vec di sender perciò mi basta l'indice
+pub struct Barrier{
+    barrier_size: usize,
+    actual_number_thread: Mutex<(usize, bool)>,
+    cv: Condvar,
 }
 
-pub fn crea_ranking_barrier() -> (RankingBarrier, Vec<Canale>) {
-    let (txs_ranking_barrier, rx_ranking_barrier) = mpsc::channel();
-    let mut txs = Vec::new();
-
-    let mut canali = vec![];
-
-    for _ in 0..5 {
-        let (tx, rx) = mpsc::channel();
-
-        txs.push(tx);
-        canali.push(Canale{ tx: txs_ranking_barrier.clone(), rx });
+impl Barrier{
+    pub fn new(size: usize) -> Result<Barrier, usize>{
+        if size < 2 {
+            return Err(0 as usize);
+        }
+        Ok(Barrier { barrier_size: size, actual_number_thread: Mutex::new((0, false)), cv: Condvar::new() })
     }
 
-    (RankingBarrier{txs, rx: rx_ranking_barrier, coda: VecDeque::new()}, canali)
+    pub fn wait(&self) -> usize{
+        let mut actual_number_thread = self.actual_number_thread.lock().unwrap();
+
+        actual_number_thread.0 +=  1;
+        let rank = actual_number_thread.0;
+        let stato_barriera =  actual_number_thread.1;
+
+        if actual_number_thread.0 == self.barrier_size {
+            actual_number_thread.0 +=  0;
+            actual_number_thread.1 = !stato_barriera; // generico così funziona sia in apertura che chiusura
+            self.cv.notify_all();
+        } else {
+            while actual_number_thread.1 == stato_barriera {
+                actual_number_thread = self.cv.wait(actual_number_thread).unwrap();
+            }
+        }
+
+        rank
+    }
 }
 
 fn main() {
-    let mut ranking_barrier;
-    let canali;
-    (ranking_barrier, canali) = crea_ranking_barrier();
+    let size = 3;
+    let ranking_barrier = Arc::new(Barrier::new(size).unwrap());
+    let mut handlers = vec![];
 
-    let mut handles = vec![];
+    for j in 0..2 {
+        println!("\nCiclo barriera numero {}", j);
+        for i in 0..size {
+            let b = ranking_barrier.clone();
+            handlers.push(thread::spawn(move || {
+                let res = b.wait();
+                println!("{} esce dalla barriera {}", i, res);
+            }));
+        }
 
-    for (i, canale) in canali.into_iter().enumerate() {
-        let handle = thread::spawn(move || {
-            // sleep causale
-            thread::sleep(Duration::new(fastrand::u64(0..10), 0));
-
-            // scrivo al capo
-            canale.tx.send(i).unwrap();
-
-            // aspetto capo che dovrebbe tornare in ordine di arrivo FIFO
-            let msg = canale.rx.recv().unwrap();
-            println!("th{}: FIFO position {}", i, msg);
-        });
-        handles.push(handle);
+        thread::sleep(Duration::from_secs(1));
     }
+        
 
-    let handle = thread::spawn(move || {
-        for i in 0..5 {
-            let id = ranking_barrier.rx.recv().unwrap();
-            ranking_barrier.coda.push_back(id);
-            println!("ranking_barrier: received th {}", id);
-        }
+    // let b1 = ranking_barrier.clone();
+    // handlers.push(thread::spawn(move || {
+    //     let res = b1.wait();
+    //     println!("(b1) esce dalla barriera {}", res);
+    // }));
 
-        for (i, id_canale) in ranking_barrier.coda.into_iter().enumerate() {
-            ranking_barrier.txs[id_canale].send(i).unwrap();
-        }
-    });
-    handles.push(handle);
+    // let b2 = ranking_barrier.clone();
+    // handlers.push(thread::spawn(move || {
+    //     let res = b2.wait();
+    //     println!("(b2) esce dalla barriera {}", res);
+    // }));
 
-    for handle in handles {
-        handle.join().unwrap();
+    // let b3 = ranking_barrier.clone();
+    // handlers.push(thread::spawn(move || {
+    //     let res = b3.wait();
+    //     println!("(b3) esce dalla barriera {}", res);
+    // }));
+
+    // let b4 = ranking_barrier.clone();
+    // handlers.push(thread::spawn(move || {
+    //     //thread::sleep(Duration::from_secs(1));
+    //     let res = b4.wait();
+    //     println!("(b4) esce dalla barriera {}", res);
+    // }));
+    
+
+    for handler in handlers{
+        handler.join().unwrap();
     }
 }

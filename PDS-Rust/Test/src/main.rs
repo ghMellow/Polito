@@ -9,6 +9,35 @@ struct Punto {
 }
 
 fn main() {
+    //
+
+    struct Container {
+        number: Box<i32>,
+        function: Box<dyn Fn(i32) -> i32>,
+    }
+
+    impl Container {
+        fn demo<T>(&self, s: &T) {
+            // ACCESSO AI CAMPI - Deref coercion automatico
+            println!("Numero: {}", self.number);        // Non serve *self.number
+            let result = (self.function)(42);           // Non serve *self.function
+            println!("Result: {}", result);
+
+            // MA se vuoi essere esplicito, puoi:
+            println!("Numero esplicito: {}", *self.number);
+            let result2 = (*self.function)(42);
+            println!("Result esplicito: {}", result2);
+
+            // PATTERN MATCHING - Qui devi essere esplicito
+            match &*self.number {  // Serve &* per ottenere &i32
+                42 => println!("È 42!"),
+                _ => println!("Non è 42"),
+            }
+        }
+    }
+    let con = Container {number: Box::new(42), function: Box::new(|x| x + 1)};
+    //con.demo();
+
     // --
     let mut i = 32;
 
@@ -340,6 +369,12 @@ fn main() {
     println!("Condition met. Value is now {}.", *value);
     // Wait for counting thread to finish
     counting_thread.join().unwrap();
+
+    let mut contatore = Some(0);
+    while let Some(c) = contatore {
+        println!("Il contatore è: {}", c);
+        contatore = if c < 3 { Some(c + 1) } else { None }; // ciclo in cui è uguale a 3 determina None e uscita poi da while, 4 iterazioni
+    }
 }
 
 
