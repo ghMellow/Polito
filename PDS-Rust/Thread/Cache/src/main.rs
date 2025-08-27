@@ -36,7 +36,8 @@ impl<K: Clone+Hash+Eq+PartialEq, V> Cache<K, V> {
 
     //pub fn get(&self, k: K, f: impl FnOnce(&K)->V) -> V {
     //pub fn get<F: FnOnce(&K)->V> (&self, k: K, f: F) -> V {
-    pub fn get<F: FnOnce(&K)->V> (&self, k: K, f: F) -> Arc<V> {
+    pub fn get<F> (&self, k: K, f: F) -> Arc<V> 
+    where F:FnOnce(&K)->V{
         let mut memoria = self.memoria.lock().unwrap();
 
         loop{
