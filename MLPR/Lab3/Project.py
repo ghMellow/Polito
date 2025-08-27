@@ -55,7 +55,7 @@ def compute_mean_covariance(D):
     Dc = D - mu
     # Compute covariance matrix
     C = (Dc @ Dc.T) / float(Dc.shape[1])
-    print(f"Mean:\n{mu}\nCovariance matrix:\n{C}\n")
+    #print(f"Mean:\n{mu}\nCovariance matrix:\n{C}\n")
 
     return mu, C
 
@@ -71,16 +71,16 @@ def compute_pca(D, m):
     # - For a generic square matrix we can use the library function numpy.linalg.eig
     # - if the covariance matrix is symmetric, we can use the more specific function numpy.linalg.eigh
     # In both cases the functions returns the eigenvalues (s), and the corresponding eigenvectors (columns of U).
-    print(C.shape)
+    """print(C.shape)
     if C.shape[0] != C.shape[1]:
         s, U = numpy.linalg.eig(C)
     else:
-        s, U = numpy.linalg.eigh(C)
+        s, U = numpy.linalg.eigh(C)"""
 
     # now we need to sort the eigenvalues sorted from smallest to largest
     # The m leading eigenvectors can be retrieved from U (here we also reverse the order of the columns of U
     # so that the leading eigenvectors are in the first m columns)
-    P = U[:, ::-1][:, 0:m]
+    # P = U[:, ::-1][:, 0:m]
 
     # NOTE: Since the covariance matrix is semi-definite positive
     #       we can also get the sorted eigenvectors from the Singular Value Decomposition (svd)
@@ -157,8 +157,8 @@ def compute_sw_sb(D, L):
     Sw = Sw / n_samples
 
     # Print calculated matrices
-    print(f"Sb matrix (between-class):\n{Sb}\n")
-    print(f"Sw matrix (within-class):\n{Sw}\n")
+    #print(f"Sb matrix (between-class):\n{Sb}\n")
+    #print(f"Sw matrix (within-class):\n{Sw}\n")
 
     return Sb, Sw
 
@@ -200,22 +200,23 @@ def classification_with_lda(D, L):
     DTR_lda = project_dataset(W, DTR)
     DVAL_lda = project_dataset(W, DVAL)
 
-    # Plotting
-    #plot_hist(DTR_lda, LTR)
-    #plot_hist(DVAL_lda, LVAL)
+    # Plotting, dai plot si nota che solo la feature 1 è valida per la classificazione poichè sono ben separati i dataset
+    plot_hist(DTR_lda, LTR)
+    plot_hist(DVAL_lda, LVAL)
 
     # Classified the projected data
     mu_false_fingerprint = DTR_lda[0, LTR == 0].mean()
     mu_true_fingerprint = DTR_lda[0, LTR == 1].mean()
     threshold = (mu_true_fingerprint + mu_false_fingerprint) / 2.0  # Projected samples have only 1 dimension
     PVAL = numpy.zeros(shape=LVAL.shape, dtype=numpy.int32)
+    # classification made it only on the first feature
     PVAL[DVAL_lda[0] >= threshold] = 1 # predicted as true
     PVAL[DVAL_lda[0] < threshold] = 0 # predicted as false
 
     # validation
     num_different = numpy.sum(LVAL != PVAL)  # != between numpy vectors return a list of boolean (0 or 1)
-    print(f"Threshold 𝒕 {threshold}\nNumber of different elements: {num_different} out of {len(LVAL)}\nError rate: {100*num_different/len(LVAL)}%")
-    print(f"{LVAL}\n{PVAL}")
+    #print(f"Threshold 𝒕 {threshold}\nNumber of different elements: {num_different} out of {len(LVAL)}\nError rate: {100*num_different/len(LVAL)}%")
+    #print(f"{LVAL}\n{PVAL}")
 
 
     # AI generated to Minimize the Error rate
@@ -225,7 +226,7 @@ def classification_with_lda(D, L):
     opt.plot_threshold_metrics(metrics)
 
 
-def prepocessing_with_pca_classification_with_lda(D, L, m):
+def prepocessing_with_pca_classification_with_lda(D, L, m_pca):
     # DTR and LTR are model training data and labels
     # DVAL and LVAL are validation data and labels
     (DTR, LTR), (DVAL, LVAL) = split_db_2to1(D, L)
@@ -233,21 +234,25 @@ def prepocessing_with_pca_classification_with_lda(D, L, m):
     # Compute pca
     mu, C = compute_mean_covariance(DTR)
 
+    # Centra PRIMA di proiettare (usando la media del training)
+    DTR_centered = DTR - mu
+    DVAL_centered = DVAL - mu  # Usa la stessa media del training!
+
     # NOTE: Since the covariance matrix is semi-definite positive
     #       we can also get the sorted eigenvectors from the Singular Value Decomposition (svd)
     U, s, Vh = numpy.linalg.svd(C)
     # In this case, the singular values (which are equal to the eigenvalues) are sorted in descending order,
     # and the columns of U are the corresponding eigenvectors
-    P = U[:, 0:m]
+    P = U[:, 0:m_pca]
 
     # Projecting the data usando stesso P calcolato da DTR
-    DTR_pca = project_dataset(P, DTR)
-    DVAL_pca = project_dataset(P, DVAL)
+    DTR_pca = project_dataset(P, DTR_centered)
+    DVAL_pca = project_dataset(P, DVAL_centered)
 
     # Compute lda
     Sb, Sw = compute_sw_sb(DTR_pca, LTR)  # b: between class variation \ w: within class variation
-    m = DTR.shape[0] - 1  # max val number of class - 1
-    W = compute_eigenvalue(Sb, Sw, m)
+    m_lda = 1 # classificazione binaria ci interessa solo la direzione ottimale per la classificaizone (se esplorazione: m = DTR.shape[0] - 1  # max val number of class - 1)
+    W = compute_eigenvalue(Sb, Sw, m_lda)
 
     # Projecting the data
     DTR_lda = project_dataset(W, DTR_pca)
@@ -256,6 +261,13 @@ def prepocessing_with_pca_classification_with_lda(D, L, m):
     # Classified the projected data
     mu_false_fingerprint = DTR_lda[0, LTR == 0].mean()
     mu_true_fingerprint = DTR_lda[0, LTR == 1].mean()
+    # Se la classe 1 ha centroide minore, inverti la direzione
+    if mu_true_fingerprint < mu_false_fingerprint:
+        DTR_lda = -DTR_lda
+        DVAL_lda = -DVAL_lda
+        mu_false_fingerprint = -mu_false_fingerprint
+        mu_true_fingerprint = -mu_true_fingerprint
+
     threshold = (mu_true_fingerprint + mu_false_fingerprint) / 2.0  # Projected samples have only 1 dimension
     PVAL = numpy.zeros(shape=LVAL.shape, dtype=numpy.int32)
     PVAL[DVAL_lda[0] >= threshold] = 1 # predicted as true
@@ -285,5 +297,20 @@ if __name__ == '__main__':
     # classification_with_lda(D, L)
 
     # PCA as dimensionality reduction and LDA for classification
-    m = 1
-    prepocessing_with_pca_classification_with_lda(D, L, m)
+    # Nota: quando si fa esplorazione ha senso usare tutte le direzioni (m=DTR.shape[0] - 1) cos' da poterle plottare e avere un idea chiara
+    #       ma quando si fa classificazione la funzione compute_eigenvalue ordina le direzioni in modo che la più discriminante sia nella posizione 0
+    #       quindi m_lda deve essere = 0.
+    for m_pca in [1, 2, 3, 4, 5, 6]:
+        print(f"\n> m_pca: {m_pca}\n")
+        # con m=2 lda inverte la posizione discriminante, questo perchè: autovalori molto piccoli, possibili autovalori negativi, determinante di Sw vicino a zero
+        # 
+        # Questo spiegherebbe perché la direzione "ottimale" matematicamente non corrisponde alla direzione praticamente migliore per la classificazione.
+        # La soluzione robusta è sempre usare m_lda=1 e magari aggiungere un controllo per verificare che l'autovalore sia positivo e significativo.
+        prepocessing_with_pca_classification_with_lda(D, L, m_pca)
+
+    """
+    Punto Chiave
+    
+    - PCA: Trova direzioni di massima varianza
+    - LDA: Crea una nuova direzione ottimale per la classificazione, combinando quelle di PCA
+    """
