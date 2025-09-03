@@ -155,7 +155,7 @@ def computeParams_ML_TiedCov(D, labels, useLDAForTiedCov=False):
 
 # 2° compute the score matrix S with the (log?)-pdf of each class
 
-def scoreMatrix_Pdf_GAU(D, params, useLog=False):
+def scoreMatrix_Pdf_GAU(D, params, useLog=True):
     # Compute the (log?)-Pdf of the data given the parameters of a Gaussian distribution and populate the score matrix S with the (log?)-pdf of each class
     """
     Parameters:
@@ -187,7 +187,7 @@ def scoreMatrix_Pdf_GAU(D, params, useLog=False):
 
 # 3° use the Bayes approach to make inference
 
-def computeSJoint(S, Priors, useLog=False):
+def computeSJoint(S, Priors, useLog=True):
     # Compute the joint densities by multiplying the score matrix S with the Priors
     """
     Parameters:
@@ -206,7 +206,7 @@ def computeSJoint(S, Priors, useLog=False):
         return S * vcol(Priors)
 
 
-def computePosteriors(SJoint, useLog=False):
+def computePosteriors(SJoint, useLog=True):
     """
     Compute the posteriors by normalizing the joint densities
     The posteriors are the joint densities divided by the sum of the joint densities which are the marginals
@@ -286,44 +286,66 @@ def gaussian_bayes_classifier(LTR, DVAL, ML_params, useLog=True):
     # Compute the posterior probabilities
     S_Post = computePosteriors(S_Joint, useLog)
 
-    # Classify samples by selecting the class with highest posterior probability
+    # Classify samples by selecting the class with highest posterior probability for each sample
+    # set axis=0 to select the class with the highest posterior probability for each sample
     predicted_labels = classify(S_Post)
 
     return predicted_labels
 
+
+def compute_error_MVG(predicted_labels, LVAL, print_err=False):
+    # Compute error rate
+    error_count = np.count_nonzero(predicted_labels != LVAL)
+    error_rate = np.mean(predicted_labels != LVAL)
+    if print_err:
+        print(f"Error Rate: {error_rate:.2%}")
+        print(f"Number of wrong predictions: {error_count}")
+
+    return error_rate
+
+
+# -----------------------------------------------------------------------
 # Choose the pipeline based on the model assumption
 # It changes only the ML_params computation
 
-def pipeline(DTR, LTR, DVAL):
+def pipeline(DTR, LTR, DVAL, LVAL):
     # 1°
     # compute MVG parameters using Maximum Likelihood Estimation (MLE)
     # or rather finds the most probable parameters for a probability distribution, given a set of observed data, by maximizing the likelihood function A.K.A mean and covariance.
     ML_params = computeParams_ML(DTR, LTR)
 
-    # 2°
-    PredictedLabels = gaussian_bayes_classifier(LTR, DVAL, ML_params)
+    # 2° predict label for each sample
+    Predicted_labels = gaussian_bayes_classifier(LTR, DVAL, ML_params)
 
-    return PredictedLabels
+    # 3°
+    error = compute_error_MVG(Predicted_labels, LVAL)
+
+    return Predicted_labels, error
 
 
-def pipeline_Naive(DTR, LTR, DVAL):
+def pipeline_Naive(DTR, LTR, DVAL, LVAL):
     # 1°
     # compute MVG parameters using Maximum Likelihood Estimation (MLE)
     ML_params = computeParams_ML_NaiveBayesAssumption(DTR, LTR)
 
-    # 2°
-    PredictedLabels = gaussian_bayes_classifier(LTR, DVAL, ML_params)
+    # 2° predict label for each sample
+    Predicted_labels = gaussian_bayes_classifier(LTR, DVAL, ML_params)
 
-    return PredictedLabels
+    # 3°
+    error = compute_error_MVG(Predicted_labels, LVAL)
+
+    return Predicted_labels, error
 
 
-def pipeline_TiedCov(DTR, LTR, DVAL):
+def pipeline_TiedCov(DTR, LTR, DVAL, LVAL, useLDAForTiedCov=False):
     # 1°
     # compute MVG parameters using Maximum Likelihood Estimation (MLE)
-    ML_params = computeParams_ML_TiedCov(DTR, LTR)
+    ML_params = computeParams_ML_TiedCov(DTR, LTR, useLDAForTiedCov)
 
-    # 2°
-    # 2°
-    PredictedLabels = gaussian_bayes_classifier(LTR, DVAL, ML_params)
+    # 2° predict label for each sample
+    Predicted_labels = gaussian_bayes_classifier(LTR, DVAL, ML_params)
 
-    return PredictedLabels
+    # 3°
+    error = compute_error_MVG(Predicted_labels, LVAL)
+
+    return Predicted_labels, error
