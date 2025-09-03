@@ -224,7 +224,9 @@ def computePosteriors(SJoint, useLog=False):
         # It computes log(exp(a) + exp(b)) in a numerically stable way
 
         # sum over the rows (axis=0) to get the marginal of each sample
+        # aka denominator of the Bayes function
         SMarginal = logsumexp(SJoint, axis=0)
+
         # SMarginal has now shape = (numSamples, ) -> it's a row vector
         # I need to make it of shape (1, numSamples)
         SPost = SJoint - vrow(SMarginal)  # element wise division in log scale, so I just need to subtract the marginals from the joint densities
@@ -253,73 +255,75 @@ def classify(SPost):
     return np.argmax(SPost, axis=0)
 
 
+def gaussian_bayes_classifier(LTR, DVAL, ML_params, useLog=True):
+    """
+    Implements a Gaussian Bayesian classifier for multivariate classification.
+
+    Applies Bayes' theorem using multivariate Gaussian densities to compute
+    posterior probabilities and classify validation samples.
+
+    Args:
+        LTR (numpy.ndarray): Training set labels (1D array)
+        DVAL (numpy.ndarray): Validation features matrix (d x N)
+        ML_params (list): ML estimated parameters (means and covariances per class)
+        useLog (bool): If True, uses logarithmic domain for numerical stability
+
+    Returns:
+        numpy.ndarray: predicted_labels - 1D array with predicted labels for each sample
+    """
+    # Compute score matrix (the likelihood) using the density function
+    S_LogLikelihoods = scoreMatrix_Pdf_GAU(DVAL, ML_params, useLog)
+
+    # Choose the prior distribution
+    # Uniform prior distribution, equal for each class
+    classes = np.unique(LTR)
+    Priors = np.ones(len(classes)) / len(classes)
+    # Other prior distributions can be implemented here
+
+    # Compute the joint matrix: likelihood * prior
+    S_Joint = computeSJoint(S_LogLikelihoods, Priors, useLog)
+
+    # Compute the posterior probabilities
+    S_Post = computePosteriors(S_Joint, useLog)
+
+    # Classify samples by selecting the class with highest posterior probability
+    predicted_labels = classify(S_Post)
+
+    return predicted_labels
+
 # Choose the pipeline based on the model assumption
 # It changes only the ML_params computation
 
-def pipeline(DTR, LTR, DVAL, useLog=True):
+def pipeline(DTR, LTR, DVAL):
     # 1°
-    # compute MVG parameters using Maximum Likelihood
+    # compute MVG parameters using Maximum Likelihood Estimation (MLE)
+    # or rather finds the most probable parameters for a probability distribution, given a set of observed data, by maximizing the likelihood function A.K.A mean and covariance.
     ML_params = computeParams_ML(DTR, LTR)
 
     # 2°
-    S_LogLikelihoods = scoreMatrix_Pdf_GAU(DVAL, ML_params, useLog)
-
-    # 3°
-    # Uniform prior distribution, equal for each classes
-    classes = np.unique(LTR)
-    Priors = np.ones(len(classes)) / len(classes) # vet of 1 each one divide by the unique number of class
-    # Other prior distribution...
-    # ToDo
-
-    S_Joint = computeSJoint(S_LogLikelihoods, Priors, useLog)
-    S_Post = computePosteriors(S_Joint, useLog)
-
-    PredictedLabels = classify(S_Post)
+    PredictedLabels = gaussian_bayes_classifier(LTR, DVAL, ML_params)
 
     return PredictedLabels
 
 
-def pipeline_Naive(DTR, LTR, DVAL, useLog=True):
+def pipeline_Naive(DTR, LTR, DVAL):
     # 1°
-    # compute MVG parameters using Maximum Likelihood
+    # compute MVG parameters using Maximum Likelihood Estimation (MLE)
     ML_params = computeParams_ML_NaiveBayesAssumption(DTR, LTR)
 
     # 2°
-    S_LogLikelihoods = scoreMatrix_Pdf_GAU(DVAL, ML_params, useLog)
-
-    # 3°
-    # Uniform prior distribution, equal for each classes
-    classes = np.unique(LTR)
-    Priors = np.ones(len(classes)) / len(classes)  # vet of 1 each one divide by the unique number of class
-    # Other prior distribution...
-    # ToDo
-
-    S_Joint = computeSJoint(S_LogLikelihoods, Priors, useLog)
-    S_Post = computePosteriors(S_Joint, useLog)
-
-    PredictedLabels = classify(S_Post)
+    PredictedLabels = gaussian_bayes_classifier(LTR, DVAL, ML_params)
 
     return PredictedLabels
 
 
-def pipeline_TiedCov(DTR, LTR, DVAL, useLog=True):
+def pipeline_TiedCov(DTR, LTR, DVAL):
     # 1°
-    # compute MVG parameters using Maximum Likelihood
+    # compute MVG parameters using Maximum Likelihood Estimation (MLE)
     ML_params = computeParams_ML_TiedCov(DTR, LTR)
 
     # 2°
-    S_LogLikelihoods = scoreMatrix_Pdf_GAU(DVAL, ML_params, useLog)
-
-    # 3°
-    # Uniform prior distribution, equal for each classes
-    classes = np.unique(LTR)
-    Priors = np.ones(len(classes)) / len(classes)  # vet of 1 each one divide by the unique number of class
-    # Other prior distribution...
-    # ToDo
-
-    S_Joint = computeSJoint(S_LogLikelihoods, Priors, useLog)
-    S_Post = computePosteriors(S_Joint, useLog)
-
-    PredictedLabels = classify(S_Post)
+    # 2°
+    PredictedLabels = gaussian_bayes_classifier(LTR, DVAL, ML_params)
 
     return PredictedLabels
